@@ -6,6 +6,9 @@ services:
     restart: always
     environment:
       POSTGRES_PASSWORD: Halamadrid15
+      POSTGRES_DB: blog
+      TZ: Asia/Kolkata
+      PGTZ: Asia/Kolkata
 
     #Database Management Interface
   adminer:
