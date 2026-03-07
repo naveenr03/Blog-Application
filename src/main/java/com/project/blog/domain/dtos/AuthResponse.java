@@ -1,5 +1,6 @@
 package com.project.blog.domain.dtos;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,8 +10,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class LoginRequest {
-    private String email;
-    private String password;
+public class AuthResponse {
+    private  String token;
+    private long expiresIn;
+
 
 }
