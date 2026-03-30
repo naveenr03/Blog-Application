@@ -37,7 +37,7 @@ public class Post {
     private PostStatus status;
 
     @Column(nullable = false)
-    private Instant readingTime;
+    private Integer readingTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
