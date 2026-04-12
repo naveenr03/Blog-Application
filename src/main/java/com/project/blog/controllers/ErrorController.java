@@ -7,12 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestController
-@ControllerAdvice
+@RestControllerAdvice
 @Slf4j
 public class ErrorController {
 
@@ -51,7 +49,7 @@ public class ErrorController {
 
     }
 
-    @ExceptionHandler(BadCredentialsException.class)
+    @ExceptionHandler(value = {BadCredentialsException.class})
     public ResponseEntity<ApiErrorResponse> handleBadCredentialsException(BadCredentialsException exception) {
         ApiErrorResponse error = ApiErrorResponse.builder()
                 .status(HttpStatus.UNAUTHORIZED.value())
@@ -61,7 +59,7 @@ public class ErrorController {
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(EntityNotFoundException.class)
+    @ExceptionHandler(value = {EntityNotFoundException.class})
     public ResponseEntity<ApiErrorResponse> handleEntityNotFoundException(EntityNotFoundException exception) {
         ApiErrorResponse error = ApiErrorResponse.builder()
                 .status(HttpStatus.NOT_FOUND.value())
