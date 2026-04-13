@@ -13,12 +13,11 @@ A full-stack blog application: a **Spring Boot** REST API with JWT authenticatio
 
 ```
 docker-compose.yml       # PostgreSQL + Adminer (local dev database)
-blog/                    # Spring Boot API (this Maven project)
-  src/main/java/...
-  src/main/resources/application.properties
-blog-frontend/           # React SPA
-  package.json
-  vite.config.ts         # dev server proxies /api → backend
+.env.example             # Template for local secrets (copy to .env — never commit .env)
+pom.xml                  # Spring Boot API (Maven root)
+src/main/java/...
+src/main/resources/application.properties
+blog-frontend/           # React SPA (has its own .env.example)
 ```
 
 ## Prerequisites
@@ -30,7 +29,9 @@ blog-frontend/           # React SPA
 
 ## Docker Compose (database)
 
-The repo includes **`docker-compose.yml`** (there is no separate `Dockerfile` for the app itself), which starts **PostgreSQL** with a ready-to-use database and **Adminer** for browsing the DB in a browser. You do **not** need to create the database manually.
+The repo includes **`docker-compose.yml`**, which starts **PostgreSQL** with a ready-to-use database and **Adminer** for browsing the DB in a browser. You do **not** need to create the database manually.
+
+Optional: copy **`.env.example`** to **`.env`** in the repo root to set a custom **`POSTGRES_PASSWORD`** (defaults to **`postgres`** if you skip this). Docker Compose reads `.env` automatically for variable substitution.
 
 From the repository root:
 
@@ -52,7 +53,7 @@ Open **http://localhost:8888**. On the login screen:
 1. **System** — choose **PostgreSQL** (not MySQL/MariaDB). Using the wrong engine produces errors such as **“Connection refused”** because Adminer speaks the wrong protocol.
 2. **Server** — `db` (the Docker Compose service name; Adminer runs on the same network and resolves it).
 3. **Username** — `postgres` (default for the `postgres` image).
-4. **Password** — same value as **`POSTGRES_PASSWORD`** in `docker-compose.yml`.
+4. **Password** — the value of **`POSTGRES_PASSWORD`** (from your `.env` file, or the default **`postgres`**).
 5. **Database** — `blog` (created automatically via **`POSTGRES_DB`**).
 
 If login still fails, confirm both containers are up: `docker compose ps`, and that you ran `docker compose up -d` from the directory that contains **`docker-compose.yml`**.
@@ -63,22 +64,22 @@ Stop the stack when finished:
 docker compose down
 ```
 
-Keep **`src/main/resources/application.properties`** in sync with the compose file: URL, username, password, and database name should match the `db` service (defaults assume `localhost:5432` and database **`blog`**).
+Keep datasource settings in sync with Compose: defaults assume **`localhost:5432`**, database **`blog`**, user **`postgres`**, password **`postgres`**. If you change the password in **`.env`**, set **`SPRING_DATASOURCE_PASSWORD`** (or the full **`SPRING_DATASOURCE_*`** set) when running the API, or add a local-only **`application-local.properties`** (gitignored if you add it to `.gitignore`).
 
 ## Backend setup
 
 1. **Start PostgreSQL** — typically via **Docker Compose** (above). If you use another server, create a database named `blog` (or change the URL in `application.properties`).
 
-2. **Configure the API** in `src/main/resources/application.properties`:
+2. **Configure the API** via `src/main/resources/application.properties` and **environment variables** (preferred for secrets):
 
-   - `spring.datasource.*` — must match your PostgreSQL instance (Docker defaults are aligned with `docker-compose.yml`).
-   - `jwt.secret` — use a long, random secret (at least **32 bytes** for HS256 with JJWT). Override via environment in production; do not commit real secrets.
+   - `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` — override JDBC settings without editing files.
+   - `JWT_SECRET` — long random secret (at least **32 bytes** for HS256). **Required in production**; never commit real secrets. See **`.env.example`** for local-only hints.
    - `jwt.expiration-ms` — access-token lifetime in milliseconds (default eight hours).
    - `spring.profiles.active` — defaults to **`dev`**, which runs a small **seed user** (`dev.seed-user.*` in `application.properties`). Set `DEV_SEED_USER_PASSWORD` to choose the password, or switch profile (e.g. `prod`) in production so the seed does not run.
 
    Hibernate is set to `ddl-auto=update`, so schema is created/updated from the JPA entities when the API starts.
 
-3. **Build and run** from the **`blog/`** directory (the Maven module root):
+3. **Build and run** from the **repository root** (directory that contains `pom.xml`):
 
    ```bash
    mvn spring-boot:run
@@ -116,7 +117,7 @@ Keep **`src/main/resources/application.properties`** in sync with the compose fi
 
 ## Using the application
 
-1. Start the stack: **`docker compose up -d`** (database), then **`mvn spring-boot:run`** in `blog/`, then **`npm run dev`** in `blog-frontend/`.
+1. Start the stack: **`docker compose up -d`** (database), then **`mvn spring-boot:run`** at the repo root, then **`npm run dev`** in `blog-frontend/`.
 2. Open the app in the browser. **Sign up** at **`/signup`** (or use **Log in** at `/login`). With the **`dev`** profile, a seed user is still created on startup (see `DevUserSeedRunner` and `dev.seed-user.*` in `application.properties`).
 3. Create categories, tags, and posts as needed.
 4. Optional: open **Adminer** at **http://localhost:8888**, select **PostgreSQL**, then connect as described in **Adminer** above.
@@ -129,7 +130,7 @@ Keep **`src/main/resources/application.properties`** in sync with the compose fi
 
 ## API overview
 
-REST endpoints are grouped under **`/api/v1`** (e.g. posts, categories, tags, auth). Auth endpoints include **`POST /api/v1/auth/login`** and **`POST /api/v1/auth/register`**. The React client uses **`/api/v1`** via the Vite proxy (`baseURL: '/api/v1'` in `blog-frontend/src/services/apiService.ts`).
+REST endpoints are grouped under **`/api/v1`** (e.g. posts, categories, tags, auth). Auth endpoints include **`POST /api/v1/auth/login`** and **`POST /api/v1/auth/register`**. The React client uses **`/api/v1`** via the Vite proxy in development (`blog-frontend/src/services/apiService.ts`). For production builds, set **`VITE_API_BASE_URL`** (see `blog-frontend/.env.example` and **DEPLOY.md**).
 
 ---
 

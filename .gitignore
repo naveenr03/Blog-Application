@@ -1,4 +1,12 @@
 HELP.md
+# Local secrets (copy from .env.example)
+.env
+.env.*
+!.env.example
+
+# Optional local Spring overrides (never commit secrets here)
+application-local.properties
+
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/

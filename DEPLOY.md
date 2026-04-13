@@ -35,7 +35,7 @@ Create a database (or use the default). You need something like:
 
 Spring Boot maps environment variables to properties: `APP_CORS_ALLOWED_ORIGINS` → `app.cors.allowed-origins`.
 
-**Security:** Do not rely on default `jwt.secret` or local DB passwords from `application.properties` in production. Always set `JWT_SECRET` and datasource variables on the host.
+**Security:** Do not rely on default `jwt.secret` or datasource defaults in production. Always set `JWT_SECRET` and datasource variables on the host. If real passwords or keys were ever committed to Git, **rotate them** and scrub history (e.g. `git filter-repo`) or treat those credentials as compromised.
 
 ## 3. Frontend (example: Vercel)
 

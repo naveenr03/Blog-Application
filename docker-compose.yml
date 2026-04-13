@@ -5,14 +5,14 @@ services:
       - "5432:5432"
     restart: always
     environment:
-      POSTGRES_PASSWORD: Halamadrid15
+      # Override via root ".env" (see .env.example); Compose loads .env for interpolation automatically.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: blog
       TZ: Asia/Kolkata
       PGTZ: Asia/Kolkata
 
-    #Database Management Interface
   adminer:
-      image: adminer:latest
-      ports:
-        - "8888:8080"
-      restart: always
+    image: adminer:latest
+    ports:
+      - "8888:8080"
+    restart: always
