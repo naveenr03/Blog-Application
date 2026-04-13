@@ -27,7 +27,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    private final Long jwtExpirationInMs = 90000L;
+    /** Token lifetime in milliseconds (default 8 hours for SPA use). */
+    @Value("${jwt.expiration-ms:28800000}")
+    private long jwtExpirationInMs;
 
     public AuthenticationServiceImpl(@Lazy AuthenticationManager authenticationManager,
                                      UserDetailsService userDetailsService) {

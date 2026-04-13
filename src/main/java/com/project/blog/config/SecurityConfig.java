@@ -1,7 +1,8 @@
 package com.project.blog.config;
 
 
-import com.project.blog.domain.entities.User;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.blog.domain.dtos.ApiErrorResponse;
 import com.project.blog.repositories.UserRepository;
 import com.project.blog.security.BlogUserDetailsService;
 import com.project.blog.security.JwtAuthenticationFilter;
@@ -9,6 +10,7 @@ import com.project.blog.services.AuthenticationService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -25,28 +27,19 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService(UserRepository userRepository) {
-        BlogUserDetailsService blogUserDetailsService = new BlogUserDetailsService(userRepository);
-        String email = "user@test.com";
-        userRepository.findByEmail(email).orElseGet(() -> {
-            User newUser = User.builder()
-                    .name("Test User")
-                    .email(email)
-                    .password(passwordEncoder().encode("password"))
-                    .build();
-            return userRepository.save(newUser);
-        });
-        return blogUserDetailsService;
+        return new BlogUserDetailsService(userRepository);
     }
-
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   AuthenticationService authenticationService) throws Exception {
+                                                   AuthenticationService authenticationService,
+                                                   ObjectMapper objectMapper) throws Exception {
         JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(authenticationService);
 
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/register").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/posts/drafts").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/posts/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
@@ -59,24 +52,36 @@ public class SecurityConfig {
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(401);
+                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
                             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            response.getWriter().write(
-                                    "{\"status\":401,\"message\":\"Unauthorized: " + authException.getMessage() + "\"}"
-                            );
+                            writeJson(objectMapper, response, ApiErrorResponse.builder()
+                                    .status(HttpStatus.UNAUTHORIZED.value())
+                                    .message("Unauthorized")
+                                    .build());
                         })
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            response.setStatus(403);
+                            response.setStatus(HttpStatus.FORBIDDEN.value());
                             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            response.getWriter().write(
-                                    "{\"status\":403,\"message\":\"Forbidden: " + accessDeniedException.getMessage() + "\"}"
-                            );
+                            writeJson(objectMapper, response, ApiErrorResponse.builder()
+                                    .status(HttpStatus.FORBIDDEN.value())
+                                    .message("Forbidden")
+                                    .build());
                         })
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
 
+    }
+
+    private static void writeJson(ObjectMapper objectMapper,
+                                  jakarta.servlet.http.HttpServletResponse response,
+                                  ApiErrorResponse body) {
+        try {
+            response.getWriter().write(objectMapper.writeValueAsString(body));
+        } catch (Exception e) {
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        }
     }
 
     @Bean

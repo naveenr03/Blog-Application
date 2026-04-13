@@ -72,7 +72,9 @@ Keep **`src/main/resources/application.properties`** in sync with the compose fi
 2. **Configure the API** in `src/main/resources/application.properties`:
 
    - `spring.datasource.*` — must match your PostgreSQL instance (Docker defaults are aligned with `docker-compose.yml`).
-   - `jwt.secret` — use a long, random secret (at least 32 bytes worth of characters) for signing tokens. Do not commit real secrets to public repositories.
+   - `jwt.secret` — use a long, random secret (at least **32 bytes** for HS256 with JJWT). Override via environment in production; do not commit real secrets.
+   - `jwt.expiration-ms` — access-token lifetime in milliseconds (default eight hours).
+   - `spring.profiles.active` — defaults to **`dev`**, which runs a small **seed user** (`dev.seed-user.*` in `application.properties`). Set `DEV_SEED_USER_PASSWORD` to choose the password, or switch profile (e.g. `prod`) in production so the seed does not run.
 
    Hibernate is set to `ddl-auto=update`, so schema is created/updated from the JPA entities when the API starts.
 
@@ -115,12 +117,19 @@ Keep **`src/main/resources/application.properties`** in sync with the compose fi
 ## Using the application
 
 1. Start the stack: **`docker compose up -d`** (database), then **`mvn spring-boot:run`** in `blog/`, then **`npm run dev`** in `blog-frontend/`.
-2. Open the app in the browser, **log in** with a user that exists in your database (the API exposes `/api/v1/auth/login`), then create categories, tags, and posts.
-3. Optional: open **Adminer** at **http://localhost:8888**, select **PostgreSQL**, then connect as described in **Adminer** above.
+2. Open the app in the browser. **Sign up** at **`/signup`** (or use **Log in** at `/login`). With the **`dev`** profile, a seed user is still created on startup (see `DevUserSeedRunner` and `dev.seed-user.*` in `application.properties`).
+3. Create categories, tags, and posts as needed.
+4. Optional: open **Adminer** at **http://localhost:8888**, select **PostgreSQL**, then connect as described in **Adminer** above.
+
+### Verifying registration and auth
+
+- **Register**: `POST /api/v1/auth/register` with JSON `{ "name", "email", "password" }` (password min 8 characters) → **201** and `{ "token", "expiresIn" }` (`expiresIn` is seconds, aligned with `jwt.expiration-ms`).
+- **Duplicate email** → **400** with a clear message.
+- **UI**: From the navbar, **Sign up** → submit the form → you should land on the home page already authenticated.
 
 ## API overview
 
-REST endpoints are grouped under **`/api/v1`** (e.g. posts, categories, tags, auth). The React client uses **`/api/v1`** via the Vite proxy (`baseURL: '/api/v1'` in `blog-frontend/src/services/apiService.ts`).
+REST endpoints are grouped under **`/api/v1`** (e.g. posts, categories, tags, auth). Auth endpoints include **`POST /api/v1/auth/login`** and **`POST /api/v1/auth/register`**. The React client uses **`/api/v1`** via the Vite proxy (`baseURL: '/api/v1'` in `blog-frontend/src/services/apiService.ts`).
 
 ---
 

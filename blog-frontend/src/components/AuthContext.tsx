@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { apiService } from '../services/apiService';
+import { apiService, AuthResponse, RegisterRequest } from '../services/apiService';
 
 interface AuthUser {
   id: string;
@@ -11,6 +11,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   user: AuthUser | null;
   login: (email: string, password: string) => Promise<void>;
+  register: (payload: RegisterRequest) => Promise<void>;
   logout: () => void;
   token: string | null;
 }
@@ -26,19 +27,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
 
+  const applyAuthResponse = useCallback((response: AuthResponse) => {
+    localStorage.setItem('token', response.token);
+    setToken(response.token);
+    setIsAuthenticated(true);
+  }, []);
+
   // Initialize auth state from token
   useEffect(() => {
     const initializeAuth = async () => {
       const storedToken = localStorage.getItem('token');
       if (storedToken) {
         try {
-          // TODO: Add endpoint to fetch user profile
-          // const userProfile = await apiService.getUserProfile();
-          // setUser(userProfile);
           setIsAuthenticated(true);
           setToken(storedToken);
-        } catch (error) {
-          // If token is invalid, clear authentication
+        } catch {
           localStorage.removeItem('token');
           setIsAuthenticated(false);
           setUser(null);
@@ -50,36 +53,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
-    try {
+  const login = useCallback(
+    async (email: string, password: string) => {
       const response = await apiService.login({ email, password });
-      
-      localStorage.setItem('token', response.token);
-      setToken(response.token);
-      setIsAuthenticated(true);
+      applyAuthResponse(response);
+    },
+    [applyAuthResponse]
+  );
 
-      // TODO: Add endpoint to fetch user profile after login
-      // const userProfile = await apiService.getUserProfile();
-      // setUser(userProfile);
-    } catch (error) {
-      throw error;
-    }
-  }, []);
+  const register = useCallback(
+    async (payload: RegisterRequest) => {
+      const response = await apiService.register(payload);
+      applyAuthResponse(response);
+    },
+    [applyAuthResponse]
+  );
 
   const logout = useCallback(() => {
     localStorage.removeItem('token');
     setIsAuthenticated(false);
     setUser(null);
     setToken(null);
-    apiService.logout(); // This clears the token from apiService
+    apiService.logout();
   }, []);
 
-  // Update apiService token when it changes
   useEffect(() => {
+    const axiosInstance = apiService['api'] as import('axios').AxiosInstance;
     if (token) {
-      // Update axios instance configuration
-      const axiosInstance = apiService['api'];
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } else {
+      delete axiosInstance.defaults.headers.common['Authorization'];
     }
   }, [token]);
 
@@ -87,15 +90,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated,
     user,
     login,
+    register,
     logout,
-    token
+    token,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextType => {

@@ -13,6 +13,7 @@ import com.project.blog.services.PostService;
 import com.project.blog.services.TagService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,6 +58,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Post> getDraftPost(User user) {
         return postRepository.findAllByAuthorAndStatus(user, PostStatus.DRAFT);
     }
@@ -82,18 +84,28 @@ public class PostServiceImpl implements PostService {
 
     }
 
+    private static final String POST_NOT_FOUND = "Post not found with id: ";
+
     @Override
     @Transactional(readOnly = true)
-    public Post getPostById(UUID id) {
-        return postRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Post not found with id: " + id));
+    public Post getPostById(UUID id, UUID viewerUserId) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(POST_NOT_FOUND + id));
+        if (post.getStatus() == PostStatus.PUBLISHED) {
+            return post;
+        }
+        if (viewerUserId != null && viewerUserId.equals(post.getAuthor().getId())) {
+            return post;
+        }
+        throw new EntityNotFoundException(POST_NOT_FOUND + id);
     }
 
     @Transactional
     @Override
-    public Post updatePost(UUID id, UpdatePostRequest updatePostRequest) {
+    public Post updatePost(UUID id, UUID actorUserId, UpdatePostRequest updatePostRequest) {
         Post existingPost = postRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Post not found with id: " + id));
+                .orElseThrow(() -> new EntityNotFoundException(POST_NOT_FOUND + id));
+        assertAuthor(existingPost, actorUserId);
 
         if (updatePostRequest.getTitle() != null) {
             existingPost.setTitle(updatePostRequest.getTitle());
@@ -131,10 +143,17 @@ public class PostServiceImpl implements PostService {
 
     @Transactional
     @Override
-    public void deletePost(UUID id) {
+    public void deletePost(UUID id, UUID actorUserId) {
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Post not found with id: " + id));
+                .orElseThrow(() -> new EntityNotFoundException(POST_NOT_FOUND + id));
+        assertAuthor(post, actorUserId);
         postRepository.delete(post);
+    }
+
+    private void assertAuthor(Post post, UUID actorUserId) {
+        if (actorUserId == null || !actorUserId.equals(post.getAuthor().getId())) {
+            throw new AccessDeniedException("You can only modify your own posts");
+        }
     }
 
     private Integer calculateReadingTime(String Content) {
