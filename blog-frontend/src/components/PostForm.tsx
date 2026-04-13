@@ -143,7 +143,7 @@ const PostForm: React.FC<PostFormProps> = ({
     setSelectedTags(selectedTags.filter(tag => tag !== tagToRemove));
   };
 
-  const handleHeadingSelect = (level: number) => {
+  const handleHeadingSelect = (level: 1 | 2 | 3) => {
     editor?.chain().focus().toggleHeading({ level }).run();
   };
 
@@ -179,7 +179,9 @@ const PostForm: React.FC<PostFormProps> = ({
                   </Button>
                 </DropdownTrigger>
                 <DropdownMenu
-                  onAction={(key) => handleHeadingSelect(Number(key))}
+                  onAction={(key) =>
+                    handleHeadingSelect(Number(key) as 1 | 2 | 3)
+                  }
                   aria-label="Heading levels"
                 >
                   <DropdownItem key="1" className={editor?.isActive('heading', { level: 1 }) ? 'bg-default-200' : ''}>

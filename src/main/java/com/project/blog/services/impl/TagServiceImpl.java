@@ -6,7 +6,6 @@ import com.project.blog.services.TagService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -55,14 +54,12 @@ public class TagServiceImpl implements TagService {
     @Transactional
     @Override
     public void deleteTag(UUID id) {
-        //Check if the tag is not related with any posts
-        tagRepository.findById(id).ifPresent(tag -> {
-            if(!tag.getPosts().isEmpty()) {
-                throw new IllegalStateException("Cannot delete tag with posts");
-            }
+        Tag tag = tagRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Tag not found with id: " + id));
+        if (!tag.getPosts().isEmpty()) {
+            throw new IllegalStateException("Cannot delete tag with posts");
+        }
         tagRepository.deleteById(id);
-
-        });
     }
 
     @Override

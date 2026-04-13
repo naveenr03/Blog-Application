@@ -24,13 +24,9 @@ import { apiService, Post } from '../services/apiService';
 
 interface PostPageProps {
   isAuthenticated?: boolean;
-  currentUserId?: string;
 }
 
-const PostPage: React.FC<PostPageProps> = ({ 
-  isAuthenticated,
-  currentUserId
-}) => {
+const PostPage: React.FC<PostPageProps> = ({ isAuthenticated }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [post, setPost] = useState<Post | undefined>(undefined);

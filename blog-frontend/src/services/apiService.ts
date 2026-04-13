@@ -6,6 +6,12 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+}
+
 export interface AuthResponse {
   token: string;
   expiresIn: number;
@@ -57,7 +63,8 @@ export interface ApiError {
   message: string;
   errors?: Array<{
     field: string;
-    message: string;
+    errorMessage?: string;
+    message?: string;
   }>;
 }
 
@@ -122,10 +129,27 @@ class ApiService {
     };
   }
 
+  /** Human-readable message from API error (validation or generic). */
+  public formatApiError(err: ApiError): string {
+    if (err.errors?.length) {
+      const parts = err.errors
+        .map((e) => e.errorMessage || e.message)
+        .filter(Boolean) as string[];
+      if (parts.length) {
+        return parts.join(' ');
+      }
+    }
+    return err.message || 'Request failed';
+  }
+
   // Auth endpoints
   public async login(credentials: LoginRequest): Promise<AuthResponse> {
     const response: AxiosResponse<AuthResponse> = await this.api.post('/auth/login', credentials);
-    localStorage.setItem('token', response.data.token);
+    return response.data;
+  }
+
+  public async register(body: RegisterRequest): Promise<AuthResponse> {
+    const response: AxiosResponse<AuthResponse> = await this.api.post('/auth/register', body);
     return response.data;
   }
 

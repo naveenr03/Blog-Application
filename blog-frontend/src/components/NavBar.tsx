@@ -15,7 +15,7 @@ import {
   DropdownMenu,
   DropdownItem,
 } from '@nextui-org/react';
-import { Plus, BookOpen, Edit3, LogOut, User, BookDashed } from 'lucide-react';
+import { Plus, Edit3, LogOut, BookDashed } from 'lucide-react';
 
 interface NavBarProps {
   isAuthenticated: boolean;
@@ -138,6 +138,11 @@ const NavBar: React.FC<NavBarProps> = ({
           </>
         ) : (
           <>
+            <NavbarItem>
+              <Button as={Link} to="/signup" variant="flat" color="primary">
+                Sign up
+              </Button>
+            </NavbarItem>
             <NavbarItem>
               <Button as={Link} to="/login" variant="flat">
                 Log In

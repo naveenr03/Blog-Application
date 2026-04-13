@@ -16,10 +16,10 @@ public interface PostService {
 
     Post createPost(User user, CreatePostRequest createPostRequest);
 
-    Post getPostById(UUID id);
+    Post getPostById(UUID id, UUID viewerUserId);
 
-    Post updatePost(UUID id, UpdatePostRequest updatePostRequest);
+    Post updatePost(UUID id, UUID actorUserId, UpdatePostRequest updatePostRequest);
 
-    void deletePost(UUID id);
+    void deletePost(UUID id, UUID actorUserId);
 
 }

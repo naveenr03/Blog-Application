@@ -34,7 +34,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public void delteCategory(UUID id) {
+    public void deleteCategory(UUID id) {
         Optional<Category> category  = categoryRepository.findById(id);
         if(category.isPresent()) {
             if(!category.get().getPosts().isEmpty()) {
