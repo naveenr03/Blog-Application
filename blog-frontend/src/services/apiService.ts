@@ -15,6 +15,9 @@ export interface RegisterRequest {
 export interface AuthResponse {
   token: string;
   expiresIn: number;
+  userId?: string;
+  email?: string;
+  name?: string;
 }
 
 export interface Category {

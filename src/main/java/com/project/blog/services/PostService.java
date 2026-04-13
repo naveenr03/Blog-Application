@@ -18,8 +18,8 @@ public interface PostService {
 
     Post getPostById(UUID id, UUID viewerUserId);
 
-    Post updatePost(UUID id, UUID actorUserId, UpdatePostRequest updatePostRequest);
+    Post updatePost(UUID id, UpdatePostRequest updatePostRequest);
 
-    void deletePost(UUID id, UUID actorUserId);
+    void deletePost(UUID id);
 
 }

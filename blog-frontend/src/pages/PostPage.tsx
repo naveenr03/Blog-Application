@@ -21,17 +21,16 @@ import {
   Share
 } from 'lucide-react';
 import { apiService, Post } from '../services/apiService';
+import { useAuth } from '../components/AuthContext';
 
-interface PostPageProps {
-  isAuthenticated?: boolean;
-}
-
-const PostPage: React.FC<PostPageProps> = ({ isAuthenticated }) => {
+const PostPage: React.FC = () => {
+  const { isAuthenticated, user } = useAuth();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [post, setPost] = useState<Post | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
@@ -42,6 +41,7 @@ const PostPage: React.FC<PostPageProps> = ({ isAuthenticated }) => {
         const fetchedPost = await apiService.getPost(id);
         setPost(fetchedPost);
         setError(null);
+        setDeleteError(null);
       } catch (err) {
         setError('Failed to load the post. Please try again later.');
       } finally {
@@ -52,6 +52,9 @@ const PostPage: React.FC<PostPageProps> = ({ isAuthenticated }) => {
     fetchPost();
   }, [id]);
 
+  const isAuthor =
+    Boolean(user?.id && post?.author?.id && user.id === post.author.id);
+
   const handleDelete = async () => {
     if (!post || !window.confirm('Are you sure you want to delete this post?')) {
       return;
@@ -59,10 +62,11 @@ const PostPage: React.FC<PostPageProps> = ({ isAuthenticated }) => {
 
     try {
       setIsDeleting(true);
+      setDeleteError(null);
       await apiService.deletePost(post.id);
       navigate('/');
-    } catch (err) {
-      setError('Failed to delete the post. Please try again later.');
+    } catch {
+      setDeleteError('Failed to delete the post. You may only delete your own posts.');
       setIsDeleting(false);
     }
   };
@@ -138,6 +142,11 @@ const PostPage: React.FC<PostPageProps> = ({ isAuthenticated }) => {
 
   return (
     <div className="max-w-4xl mx-auto px-4">
+      {deleteError && (
+        <p className="mb-4 text-sm text-danger" role="alert">
+          {deleteError}
+        </p>
+      )}
       <Card className="w-full">
         <CardHeader className="flex flex-col items-start gap-3">
           <div className="flex justify-between w-full">
@@ -151,7 +160,7 @@ const PostPage: React.FC<PostPageProps> = ({ isAuthenticated }) => {
               Back to Posts
             </Button>
             <div className="flex gap-2">
-              {isAuthenticated && (
+              {isAuthenticated && isAuthor && (
                 <>
                   <Button
                     as={Link}

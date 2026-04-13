@@ -48,7 +48,7 @@ function AppContent() {
               </ProtectedRoute>
             } 
           />
-          <Route path="/posts/:id" element={<PostPage isAuthenticated={isAuthenticated}/>} />
+          <Route path="/posts/:id" element={<PostPage />} />
           <Route 
             path="/posts/:id/edit" 
             element={

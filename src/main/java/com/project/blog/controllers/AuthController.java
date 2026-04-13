@@ -4,6 +4,7 @@ package com.project.blog.controllers;
 import com.project.blog.domain.dtos.AuthResponse;
 import com.project.blog.domain.dtos.LoginRequest;
 import com.project.blog.domain.dtos.RegisterRequestDto;
+import com.project.blog.security.BlogUserDetails;
 import com.project.blog.services.AuthenticationService;
 import com.project.blog.services.UserService;
 import jakarta.validation.Valid;
@@ -37,7 +38,7 @@ public class AuthController {
                 loginRequest.getPassword());
 
         String tokenValue = authenticationService.generateToken(userDetails);
-        return ResponseEntity.ok(buildAuthResponse(tokenValue));
+        return ResponseEntity.ok(buildAuthResponse(tokenValue, userDetails));
     }
 
     @PostMapping(path = "/register")
@@ -45,14 +46,19 @@ public class AuthController {
         userService.register(registerRequestDto);
         UserDetails userDetails = userDetailsService.loadUserByUsername(registerRequestDto.getEmail().trim().toLowerCase());
         String tokenValue = authenticationService.generateToken(userDetails);
-        return new ResponseEntity<>(buildAuthResponse(tokenValue), HttpStatus.CREATED);
+        return new ResponseEntity<>(buildAuthResponse(tokenValue, userDetails), HttpStatus.CREATED);
     }
 
-    private AuthResponse buildAuthResponse(String tokenValue) {
-        return AuthResponse.builder()
+    private AuthResponse buildAuthResponse(String tokenValue, UserDetails userDetails) {
+        AuthResponse.AuthResponseBuilder builder = AuthResponse.builder()
                 .token(tokenValue)
-                .expiresIn(jwtExpirationMs / 1000)
-                .build();
+                .expiresIn(jwtExpirationMs / 1000);
+        if (userDetails instanceof BlogUserDetails bud) {
+            builder.userId(bud.getId())
+                    .email(bud.getUser().getEmail())
+                    .name(bud.getUser().getName());
+        }
+        return builder.build();
     }
 
 }

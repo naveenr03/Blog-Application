@@ -9,10 +9,12 @@ import {
 import { ArrowLeft } from 'lucide-react';
 import { apiService, Post, Category, Tag, PostStatus } from '../services/apiService';
 import PostForm from '../components/PostForm';
+import { useAuth } from '../components/AuthContext';
 
 const EditPostPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [post, setPost] = useState<Post | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -94,6 +96,35 @@ const EditPostPage: React.FC = () => {
               <div className="h-4 bg-default-200 rounded w-full"></div>
               <div className="h-4 bg-default-200 rounded w-2/3"></div>
             </div>
+          </CardBody>
+        </Card>
+      </div>
+    );
+  }
+
+  const editingOthersPost =
+    Boolean(
+      id &&
+        post &&
+        user?.id &&
+        post.author?.id &&
+        user.id !== post.author.id
+    );
+
+  if (editingOthersPost) {
+    return (
+      <div className="max-w-4xl mx-auto px-4">
+        <Card className="w-full">
+          <CardBody>
+            <p className="text-danger">You can only edit your own posts.</p>
+            <Button
+              className="mt-4"
+              variant="flat"
+              startContent={<ArrowLeft size={16} />}
+              onClick={() => navigate(`/posts/${id}`)}
+            >
+              Back to post
+            </Button>
           </CardBody>
         </Card>
       </div>
