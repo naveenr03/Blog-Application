@@ -3,6 +3,7 @@ package com.project.blog.domain.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Formula;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -25,6 +26,14 @@ public class Tag {
     @Column(nullable = false, unique = true)
     private String name;
 
+    /**
+     * Read-only count from {@code post_tags}; avoids relying on the inverse {@link #posts}
+     * collection, which is not reliably populated when listing tags.
+     */
+    @Formula("(select count(*) from post_tags pt where pt.tag_id = id)")
+    @Setter(AccessLevel.NONE)
+    @Builder.Default
+    private long postCount = 0;
 
     @ManyToMany(mappedBy = "tags")
     private Set<Post> posts = new HashSet<>();
