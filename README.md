@@ -133,4 +133,8 @@ REST endpoints are grouped under **`/api/v1`** (e.g. posts, categories, tags, au
 
 ---
 
+## Deployment (free tier)
+
+See **[DEPLOY.md](DEPLOY.md)** for hosting the API, Postgres, and the Vite app (e.g. Render + Neon + Vercel), including **CORS** and **`VITE_API_BASE_URL`**.
+
 For frontend-only scripts and tooling details, see `blog-frontend/README.md` if present.

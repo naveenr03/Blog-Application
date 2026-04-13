@@ -1,0 +1,8 @@
+target
+.git
+.idea
+*.iml
+blog-frontend
+**/.DS_Store
+**/*.md
+.agent-tools

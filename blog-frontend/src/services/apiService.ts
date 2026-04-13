@@ -76,13 +76,17 @@ export enum PostStatus {
   PUBLISHED = 'PUBLISHED'
 }
 
+/** Dev: Vite proxy uses relative `/api/v1`. Production: set `VITE_API_BASE_URL` to full API root, e.g. `https://your-api.onrender.com/api/v1`. */
+const API_BASE_URL =
+  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() || '/api/v1';
+
 class ApiService {
   private api: AxiosInstance;
   private static instance: ApiService;
 
   private constructor() {
     this.api = axios.create({
-      baseURL: '/api/v1',
+      baseURL: API_BASE_URL,
       headers: {
         'Content-Type': 'application/json'
       }
