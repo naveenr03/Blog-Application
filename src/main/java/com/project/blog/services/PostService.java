@@ -1,6 +1,7 @@
 package com.project.blog.services;
 
 import com.project.blog.domain.CreatePostRequest;
+import com.project.blog.domain.UpdatePostRequest;
 import com.project.blog.domain.entities.Post;
 import com.project.blog.domain.entities.User;
 
@@ -17,7 +18,8 @@ public interface PostService {
 
     Post getPostById(UUID id);
 
+    Post updatePost(UUID id, UpdatePostRequest updatePostRequest);
+
+    void deletePost(UUID id);
+
 }
-
-
-

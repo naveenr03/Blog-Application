@@ -1,31 +1,20 @@
 package com.project.blog.mappers;
 
-import com.project.blog.domain.PostStatus;
 import com.project.blog.domain.dtos.TagResponse;
-import com.project.blog.domain.entities.Post;
 import com.project.blog.domain.entities.Tag;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.mapstruct.ReportingPolicy;
+import org.springframework.stereotype.Component;
 
-import java.util.Set;
+@Component
+public class TagMapper {
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public interface TagMapper {
-
-    @Mapping(target = "postCount", source = "posts",qualifiedByName = "calculatePostCount")
-    TagResponse toTagResponse(Tag tag);
-
-    @Named("calculatePostCount")
-    default Integer calculatePostCount(Set<Post> posts) {
-
-        if(null == posts) {
-            return 0;
+    public TagResponse toTagResponse(Tag tag) {
+        if (tag == null) {
+            return null;
         }
-
-        return (int) posts.stream().filter(post -> PostStatus.PUBLISHED.equals(post.getStatus()))
-                .count();
-
+        return TagResponse.builder()
+                .id(tag.getId())
+                .name(tag.getName())
+                .postCount((int) tag.getPostCount())
+                .build();
     }
 }
