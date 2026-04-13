@@ -136,6 +136,9 @@ REST endpoints are grouped under **`/api/v1`** (e.g. posts, categories, tags, au
 
 ## Deployment (free tier)
 
-See **[DEPLOY.md](DEPLOY.md)** for hosting the API, Postgres, and the Vite app (e.g. Render + Neon + Vercel), including **CORS** and **`VITE_API_BASE_URL`**.
+- **Render (all-in-one):** add the repo in Render **New → Blueprint**; it reads **[render.yaml](render.yaml)** (API + static frontend). See **[DEPLOY.md](DEPLOY.md)** for env vars and first-time URL/CORS tips.
+- **Vercel (UI only):** set project root to **`blog-frontend`**; **[vercel.json](blog-frontend/vercel.json)** configures Vite + SPA rewrites. Set **`VITE_API_BASE_URL`** to your API’s `/api/v1` URL.
+
+Full steps: **[DEPLOY.md](DEPLOY.md)** (**CORS**, **Neon/Supabase**, secrets).
 
 For frontend-only scripts and tooling details, see `blog-frontend/README.md` if present.

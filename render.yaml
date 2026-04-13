@@ -1,0 +1,59 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+#
+# Deploy from the dashboard: New → Blueprint → connect this GitHub repo.
+# Render will create two resources from this file and prompt for env vars where sync: false.
+#
+# Before you run the Blueprint:
+#   1. Create a Postgres database (Neon or Supabase) and have the JDBC URL + user + password ready.
+#   2. After the first deploy, set APP_CORS_ALLOWED_ORIGINS to your static site URL (https://blog-frontend-….onrender.com)
+#      and VITE_API_BASE_URL to https://blog-api-….onrender.com/api/v1 — then redeploy the static site (and API if you changed CORS).
+
+version: "1"
+
+services:
+  - type: web
+    name: blog-api
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    buildFilter:
+      paths:
+        - src/**
+        - pom.xml
+        - Dockerfile
+        - mvnw
+        - ".mvn/**"
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: APP_CORS_ALLOWED_ORIGINS
+        sync: false
+
+  - type: web
+    name: blog-frontend
+    runtime: static
+    plan: free
+    region: oregon
+    rootDir: blog-frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./blog-frontend/dist
+    buildFilter:
+      paths:
+        - blog-frontend/**
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
