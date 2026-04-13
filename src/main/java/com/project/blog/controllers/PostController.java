@@ -34,9 +34,10 @@ public class PostController {
     @GetMapping
     public ResponseEntity<List<PostDto>> getAllPosts(
             @RequestParam(required = false) UUID categoryID,
-            @RequestParam(required = false) UUID tagID
+            @RequestParam(required = false) UUID tagID,
+            @RequestParam(required = false) String search
     ) {
-        List<Post> posts = postService.getAllPosts(categoryID, tagID);
+        List<Post> posts = postService.getAllPosts(categoryID, tagID, search);
         List<PostDto> postDtos = posts.stream().map(postMapper::toDto).toList();
         return ResponseEntity.ok(postDtos);
 

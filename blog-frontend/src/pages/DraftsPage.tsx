@@ -39,23 +39,24 @@ const DraftsPage: React.FC = () => {
   }, [page, sortBy]);
 
   return (
-    <div className="max-w-4xl mx-auto px-4">
-      <Card>
-        <CardHeader className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">My Drafts</h1>
+    <div className="max-w-4xl mx-auto">
+      <Card className="border border-divider bg-content1 shadow-none">
+        <CardHeader className="flex justify-between items-center border-b border-divider">
+          <h1 className="text-xl font-semibold tracking-tight">Drafts</h1>
           <Button
             as={Link}
             to="/posts/new"
             color="primary"
+            radius="lg"
             startContent={<Plus size={16} />}
           >
-            New Post
+            New post
           </Button>
         </CardHeader>
 
-        <CardBody>
+        <CardBody className="pt-6">
           {error && (
-            <div className="mb-4 p-4 text-red-500 bg-red-50 rounded-lg">
+            <div className="mb-4 p-4 text-sm text-danger rounded-xl border border-danger-200/30 bg-danger-50/10">
               {error}
             </div>
           )}

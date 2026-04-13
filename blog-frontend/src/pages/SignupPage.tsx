@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Card, CardBody, CardHeader, Input, Button } from '@nextui-org/react';
 import { apiService, ApiError } from '../services/apiService';
 import { useAuth } from '../components/AuthContext';
 
@@ -43,113 +44,93 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm space-y-4">
-            <div>
-              <label htmlFor="name" className="sr-only">
-                Name
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                autoComplete="name"
-                required
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Full name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
-            <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password (min 8 characters)"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
-            <div>
-              <label htmlFor="confirmPassword" className="sr-only">
-                Confirm password
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                required
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Confirm password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
-          </div>
+    <div className="min-h-[70vh] flex items-center justify-center px-4">
+      <Card className="w-full max-w-md border border-divider bg-content1 shadow-none">
+        <CardHeader className="flex flex-col gap-1 items-start px-6 pt-8 pb-0">
+          <p className="text-xs font-medium uppercase tracking-widest text-primary">Join</p>
+          <h1 className="text-2xl font-semibold tracking-tight">Create account</h1>
+        </CardHeader>
+        <CardBody className="gap-5 px-6 pb-8 pt-6">
+          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+            <Input
+              label="Name"
+              type="text"
+              autoComplete="name"
+              isRequired
+              value={name}
+              onValueChange={setName}
+              isDisabled={isLoading}
+              variant="bordered"
+              classNames={{
+                inputWrapper: 'bg-content2 border-divider',
+              }}
+            />
+            <Input
+              label="Email"
+              type="email"
+              autoComplete="email"
+              isRequired
+              value={email}
+              onValueChange={setEmail}
+              isDisabled={isLoading}
+              variant="bordered"
+              classNames={{
+                inputWrapper: 'bg-content2 border-divider',
+              }}
+            />
+            <Input
+              label="Password"
+              type="password"
+              autoComplete="new-password"
+              isRequired
+              value={password}
+              onValueChange={setPassword}
+              isDisabled={isLoading}
+              variant="bordered"
+              description="At least 8 characters"
+              classNames={{
+                inputWrapper: 'bg-content2 border-divider',
+              }}
+            />
+            <Input
+              label="Confirm password"
+              type="password"
+              autoComplete="new-password"
+              isRequired
+              value={confirmPassword}
+              onValueChange={setConfirmPassword}
+              isDisabled={isLoading}
+              variant="bordered"
+              classNames={{
+                inputWrapper: 'bg-content2 border-divider',
+              }}
+            />
 
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="flex">
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">{error}</h3>
-                </div>
-              </div>
-            </div>
-          )}
+            {error ? (
+              <p className="text-sm text-danger" role="alert">
+                {error}
+              </p>
+            ) : null}
 
-          <div>
-            <button
+            <Button
               type="submit"
-              disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              color="primary"
+              radius="lg"
+              className="font-medium"
+              isLoading={isLoading}
             >
-              {isLoading ? 'Creating account...' : 'Sign up'}
-            </button>
-          </div>
+              Sign up
+            </Button>
+          </form>
 
-          <p className="text-center text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+          <p className="text-center text-sm text-default-500">
+            Already registered?{' '}
+            <Link to="/login" className="text-primary font-medium hover:underline">
               Sign in
             </Link>
           </p>
-        </form>
-      </div>
+        </CardBody>
+      </Card>
     </div>
   );
 };

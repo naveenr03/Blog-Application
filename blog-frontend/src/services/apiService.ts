@@ -108,6 +108,7 @@ class ApiService {
       (error: AxiosError) => {
         if (error.response?.status === 401) {
           localStorage.removeItem('token');
+          localStorage.removeItem('user');
           window.location.href = '/login';
         }
         return Promise.reject(this.handleError(error));
@@ -164,8 +165,15 @@ class ApiService {
   public async getPosts(params: {
     categoryId?: string;
     tagId?: string;
+    search?: string;
   }): Promise<Post[]> {
-    const response: AxiosResponse<Post[]> = await this.api.get('/posts', { params });
+    const query: Record<string, string> = {};
+    if (params.categoryId) query.categoryID = params.categoryId;
+    if (params.tagId) query.tagID = params.tagId;
+    if (params.search?.trim()) query.search = params.search.trim();
+    const response: AxiosResponse<Post[]> = await this.api.get('/posts', {
+      params: query,
+    });
     return response.data;
   }
 

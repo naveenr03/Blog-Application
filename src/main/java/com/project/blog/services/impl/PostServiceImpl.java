@@ -36,9 +36,21 @@ public class PostServiceImpl implements PostService {
     private final TagService tagService;
     private static final int WORDS_PER_MINUTE = 200;
 
+    private static final int MAX_SEARCH_LENGTH = 200;
+
     @Override
     @Transactional(readOnly = true)
-    public List<Post> getAllPosts(UUID categoryID, UUID tagID) {
+    public List<Post> getAllPosts(UUID categoryID, UUID tagID, String search) {
+        String raw = search == null ? "" : search.trim();
+        if (!raw.isEmpty()) {
+            String term = sanitizeLikePattern(raw);
+            if (!term.isEmpty()) {
+                Category category =
+                        categoryID != null ? categoryService.getCategoryById(categoryID) : null;
+                Tag tag = tagID != null ? tagService.getTagById(tagID) : null;
+                return postRepository.searchPublished(PostStatus.PUBLISHED, term, category, tag);
+            }
+        }
 
         if(categoryID != null && tagID != null)  {
             Category category = categoryService.getCategoryById(categoryID);
@@ -59,6 +71,14 @@ public class PostServiceImpl implements PostService {
 
     return postRepository.findAllByStatus(PostStatus.PUBLISHED);
 
+    }
+
+    private static String sanitizeLikePattern(String raw) {
+        String stripped = raw.replace("%", "").replace("_", "").trim();
+        if (stripped.length() > MAX_SEARCH_LENGTH) {
+            stripped = stripped.substring(0, MAX_SEARCH_LENGTH);
+        }
+        return stripped;
     }
 
     @Override

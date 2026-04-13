@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Navbar,
   NavbarBrand,
@@ -14,8 +14,9 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  Input,
 } from '@nextui-org/react';
-import { Plus, Edit3, LogOut, BookDashed } from 'lucide-react';
+import { Plus, Edit3, LogOut, BookDashed, Search } from 'lucide-react';
 
 interface NavBarProps {
   isAuthenticated: boolean;
@@ -32,7 +33,16 @@ const NavBar: React.FC<NavBarProps> = ({
   onLogout,
 }) => {
   const location = useLocation();
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchText, setSearchText] = useState('');
+
+  useEffect(() => {
+    if (location.pathname === '/') {
+      setSearchText(searchParams.get('q') ?? '');
+    }
+  }, [location.pathname, searchParams]);
 
   const menuItems = [
     { name: 'Home', path: '/' },
@@ -40,38 +50,58 @@ const NavBar: React.FC<NavBarProps> = ({
     { name: 'Tags', path: '/tags' },
   ];
 
+  const submitSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const t = searchText.trim();
+    navigate(t ? `/?q=${encodeURIComponent(t)}` : '/');
+    setIsMenuOpen(false);
+  };
+
   return (
     <Navbar
       isBordered
+      maxWidth="xl"
       isMenuOpen={isMenuOpen}
       onMenuOpenChange={setIsMenuOpen}
-      className="mb-6"
+      className="border-b border-divider bg-content1/80 backdrop-blur-md backdrop-saturate-150"
+      classNames={{
+        base: 'mb-0',
+        wrapper: 'gap-2',
+      }}
     >
       <NavbarContent className="sm:hidden" justify="start">
-        <NavbarMenuToggle />
+        <NavbarMenuToggle
+          aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+          className="text-foreground"
+        />
       </NavbarContent>
 
-      <NavbarContent className="sm:hidden pr-3" justify="center">
+      <NavbarContent className="sm:hidden pr-2" justify="center">
         <NavbarBrand>
-          <Link to="/" className="font-bold text-inherit">Blog Platform</Link>
+          <Link
+            to="/"
+            className="font-semibold tracking-tight text-foreground"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Journal
+          </Link>
         </NavbarBrand>
       </NavbarContent>
 
-      <NavbarContent className="hidden sm:flex gap-4" justify="start">
+      <NavbarContent className="hidden sm:flex gap-6" justify="start">
         <NavbarBrand>
-          <Link to="/" className="font-bold text-inherit">Blog Platform</Link>
+          <Link to="/" className="font-semibold tracking-tight text-foreground">
+            Journal
+          </Link>
         </NavbarBrand>
         {menuItems.map((item) => (
-          <NavbarItem
-            key={item.path}
-            isActive={location.pathname === item.path}
-          >
+          <NavbarItem key={item.path} isActive={location.pathname === item.path}>
             <Link
               to={item.path}
-              className={`text-sm ${
+              className={`text-sm transition-colors ${
                 location.pathname === item.path
                   ? 'text-primary'
-                  : 'text-default-600'
+                  : 'text-default-500 hover:text-foreground'
               }`}
             >
               {item.name}
@@ -80,29 +110,51 @@ const NavBar: React.FC<NavBarProps> = ({
         ))}
       </NavbarContent>
 
-      <NavbarContent justify="end">
+      <NavbarContent className="hidden md:flex flex-1 justify-center px-4" justify="center">
+        <form onSubmit={submitSearch} className="w-full max-w-md">
+          <Input
+            aria-label="Search posts"
+            placeholder="Search title, body, tags, categories…"
+            value={searchText}
+            onValueChange={setSearchText}
+            size="sm"
+            radius="lg"
+            startContent={<Search className="text-default-400 shrink-0" size={16} />}
+            classNames={{
+              input: 'text-sm',
+              inputWrapper:
+                'bg-content2/80 border border-divider shadow-none hover:bg-content2 data-[hover=true]:bg-content2',
+            }}
+          />
+        </form>
+      </NavbarContent>
+
+      <NavbarContent justify="end" className="gap-2">
         {isAuthenticated ? (
           <>
-            <NavbarItem>
+            <NavbarItem className="hidden lg:flex">
               <Button
                 as={Link}
                 to="/posts/drafts"
-                color="secondary"
-                variant="flat"
+                variant="light"
+                size="sm"
+                className="text-default-500"
                 startContent={<BookDashed size={16} />}
               >
-                Draft Posts
+                Drafts
               </Button>
             </NavbarItem>
-            <NavbarItem>
+            <NavbarItem className="hidden sm:flex">
               <Button
                 as={Link}
                 to="/posts/new"
                 color="primary"
                 variant="flat"
+                size="sm"
+                radius="lg"
                 startContent={<Plus size={16} />}
               >
-                New Post
+                New
               </Button>
             </NavbarItem>
             <NavbarItem>
@@ -111,17 +163,16 @@ const NavBar: React.FC<NavBarProps> = ({
                   <Avatar
                     isBordered
                     as="button"
+                    size="sm"
+                    color="primary"
                     className="transition-transform"
                     src={userProfile?.avatar}
                     name={userProfile?.name}
                   />
                 </DropdownTrigger>
-                <DropdownMenu aria-label="User menu">                
-                  <DropdownItem
-                    key="drafts"
-                    startContent={<Edit3 size={16} />}
-                  >
-                    <Link to="/posts/drafts">My Drafts</Link>
+                <DropdownMenu aria-label="User menu">
+                  <DropdownItem key="drafts" startContent={<Edit3 size={16} />}>
+                    <Link to="/posts/drafts">My drafts</Link>
                   </DropdownItem>
                   <DropdownItem
                     key="logout"
@@ -130,7 +181,7 @@ const NavBar: React.FC<NavBarProps> = ({
                     color="danger"
                     onPress={onLogout}
                   >
-                    Log Out
+                    Log out
                   </DropdownItem>
                 </DropdownMenu>
               </Dropdown>
@@ -138,29 +189,41 @@ const NavBar: React.FC<NavBarProps> = ({
           </>
         ) : (
           <>
-            <NavbarItem>
-              <Button as={Link} to="/signup" variant="flat" color="primary">
+            <NavbarItem className="hidden sm:flex">
+              <Button as={Link} to="/signup" variant="light" size="sm" className="text-default-500">
                 Sign up
               </Button>
             </NavbarItem>
             <NavbarItem>
-              <Button as={Link} to="/login" variant="flat">
-                Log In
+              <Button as={Link} to="/login" color="primary" variant="flat" size="sm" radius="lg">
+                Log in
               </Button>
             </NavbarItem>
           </>
         )}
       </NavbarContent>
 
-      <NavbarMenu>
+      <NavbarMenu className="bg-content1 pt-4 gap-4">
+        <form onSubmit={submitSearch} className="px-2">
+          <Input
+            aria-label="Search posts"
+            placeholder="Search…"
+            value={searchText}
+            onValueChange={setSearchText}
+            size="md"
+            radius="lg"
+            startContent={<Search className="text-default-400" size={18} />}
+            classNames={{
+              inputWrapper: 'bg-content2 border border-divider shadow-none',
+            }}
+          />
+        </form>
         {menuItems.map((item) => (
           <NavbarMenuItem key={item.path}>
             <Link
               to={item.path}
-              className={`w-full ${
-                location.pathname === item.path
-                  ? 'text-primary'
-                  : 'text-default-600'
+              className={`w-full block py-2 ${
+                location.pathname === item.path ? 'text-primary' : 'text-default-500'
               }`}
               onClick={() => setIsMenuOpen(false)}
             >

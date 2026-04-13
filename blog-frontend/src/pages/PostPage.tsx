@@ -103,14 +103,14 @@ const PostPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto px-4">
-        <Card className="w-full animate-pulse">
+      <div className="max-w-3xl mx-auto">
+        <Card className="w-full animate-pulse bg-content1 border border-divider shadow-none">
           <CardBody>
-            <div className="h-8 bg-default-200 rounded w-3/4 mb-4"></div>
+            <div className="h-8 bg-content3 rounded-lg w-3/4 mb-4" />
             <div className="space-y-3">
-              <div className="h-4 bg-default-200 rounded w-full"></div>
-              <div className="h-4 bg-default-200 rounded w-full"></div>
-              <div className="h-4 bg-default-200 rounded w-2/3"></div>
+              <div className="h-4 bg-content3 rounded-lg w-full" />
+              <div className="h-4 bg-content3 rounded-lg w-full" />
+              <div className="h-4 bg-content3 rounded-lg w-2/3" />
             </div>
           </CardBody>
         </Card>
@@ -120,15 +120,16 @@ const PostPage: React.FC = () => {
 
   if (error || !post) {
     return (
-      <div className="max-w-4xl mx-auto px-4">
-        <Card>
+      <div className="max-w-3xl mx-auto">
+        <Card className="border border-divider bg-content1 shadow-none">
           <CardBody>
-            <p className="text-danger">{error || 'Post not found'}</p>
+            <p className="text-danger text-sm">{error || 'Post not found'}</p>
             <Button
               as={Link}
               to="/"
               color="primary"
               variant="flat"
+              radius="lg"
               startContent={<ArrowLeft size={16} />}
               className="mt-4"
             >
@@ -141,23 +142,25 @@ const PostPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4">
+    <div className="max-w-3xl mx-auto">
       {deleteError && (
         <p className="mb-4 text-sm text-danger" role="alert">
           {deleteError}
         </p>
       )}
-      <Card className="w-full">
-        <CardHeader className="flex flex-col items-start gap-3">
+      <Card className="w-full border border-divider bg-content1 shadow-none">
+        <CardHeader className="flex flex-col items-start gap-4">
           <div className="flex justify-between w-full">
             <Button
               as={Link}
               to="/"
-              variant="flat"
-              startContent={<ArrowLeft size={16} />}
+              variant="light"
               size="sm"
+              radius="lg"
+              className="text-default-500"
+              startContent={<ArrowLeft size={16} />}
             >
-              Back to Posts
+              Back
             </Button>
             <div className="flex gap-2">
               {isAuthenticated && isAuthor && (
@@ -167,6 +170,7 @@ const PostPage: React.FC = () => {
                     to={`/posts/${post.id}/edit`}
                     color="primary"
                     variant="flat"
+                    radius="lg"
                     startContent={<Edit size={16} />}
                     size="sm"
                   >
@@ -175,6 +179,7 @@ const PostPage: React.FC = () => {
                   <Button
                     color="danger"
                     variant="flat"
+                    radius="lg"
                     startContent={<Trash size={16} />}
                     onClick={handleDelete}
                     isLoading={isDeleting}
@@ -185,7 +190,9 @@ const PostPage: React.FC = () => {
                 </>
               )}
               <Button
-                variant="flat"
+                variant="light"
+                radius="lg"
+                className="text-default-500"
                 startContent={<Share size={16} />}
                 onClick={handleShare}
                 size="sm"
@@ -194,45 +201,46 @@ const PostPage: React.FC = () => {
               </Button>
             </div>
           </div>
-          <h1 className="text-3xl font-bold">{post.title}</h1>
-          <div className="flex items-center gap-4">
+          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground">
+            {post.title}
+          </h1>
+          <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
-              <Avatar
-                name={post.author?.name}
-                size="sm"
-              />
-              <span className="text-default-600">{post.author?.name}</span>
+              <Avatar name={post.author?.name} size="sm" color="primary" />
+              <span className="text-sm text-default-400">{post.author?.name}</span>
             </div>
-            <div className="flex items-center gap-2 text-default-500">
+            <div className="flex items-center gap-2 text-xs text-default-500">
               <Calendar size={16} />
               <span>{formatDate(post.createdAt)}</span>
             </div>
-            <div className="flex items-center gap-2 text-default-500">
+            <div className="flex items-center gap-2 text-xs text-default-500">
               <Clock size={16} />
               <span>{post.readingTime} min read</span>
             </div>
           </div>
         </CardHeader>
 
-        <Divider />
+        <Divider className="bg-divider" />
 
-        <CardBody>
-          <div 
-            className="prose max-w-none"
+        <CardBody className="pt-6">
+          <div
+            className="post-body max-w-none text-[15px] leading-relaxed text-white [&_p]:mb-4 [&_p]:text-white [&_strong]:text-white [&_em]:text-white"
             dangerouslySetInnerHTML={createSanitizedHTML(post.content)}
           />
         </CardBody>
 
         <CardFooter className="flex flex-col items-start gap-4">
-          <Divider />
+          <Divider className="bg-divider" />
           <div className="flex flex-wrap gap-2">
-            <Chip color="primary" variant="flat">
+            <Chip size="sm" variant="flat" className="bg-primary/10 text-primary border border-primary/20">
               {post.category.name}
             </Chip>
             {post.tags.map((tag) => (
               <Chip
                 key={tag.id}
-                variant="flat"
+                size="sm"
+                variant="bordered"
+                className="border-divider text-default-400"
                 startContent={<Tag size={14} />}
               >
                 {tag.name}

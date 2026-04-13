@@ -35,7 +35,7 @@ function AppContent() {
         } : undefined}
         onLogout={logout}
       />
-      <main className="container mx-auto py-6">
+      <main className="min-h-[calc(100vh-4rem)] container mx-auto max-w-6xl px-4 py-10">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />

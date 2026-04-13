@@ -87,14 +87,14 @@ const EditPostPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto px-4">
-        <Card className="w-full animate-pulse">
+      <div className="max-w-4xl mx-auto">
+        <Card className="w-full animate-pulse bg-content1 border border-divider shadow-none">
           <CardBody>
-            <div className="h-8 bg-default-200 rounded w-3/4 mb-4"></div>
+            <div className="h-8 bg-content3 rounded-lg w-3/4 mb-4" />
             <div className="space-y-3">
-              <div className="h-4 bg-default-200 rounded w-full"></div>
-              <div className="h-4 bg-default-200 rounded w-full"></div>
-              <div className="h-4 bg-default-200 rounded w-2/3"></div>
+              <div className="h-4 bg-content3 rounded-lg w-full" />
+              <div className="h-4 bg-content3 rounded-lg w-full" />
+              <div className="h-4 bg-content3 rounded-lg w-2/3" />
             </div>
           </CardBody>
         </Card>
@@ -113,13 +113,14 @@ const EditPostPage: React.FC = () => {
 
   if (editingOthersPost) {
     return (
-      <div className="max-w-4xl mx-auto px-4">
-        <Card className="w-full">
+      <div className="max-w-4xl mx-auto">
+        <Card className="w-full border border-divider bg-content1 shadow-none">
           <CardBody>
-            <p className="text-danger">You can only edit your own posts.</p>
+            <p className="text-danger text-sm">You can only edit your own posts.</p>
             <Button
               className="mt-4"
               variant="flat"
+              radius="lg"
               startContent={<ArrowLeft size={16} />}
               onClick={() => navigate(`/posts/${id}`)}
             >
@@ -132,26 +133,28 @@ const EditPostPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4">
-      <Card className="w-full">
-        <CardHeader className="flex justify-between items-center">
+    <div className="max-w-4xl mx-auto">
+      <Card className="w-full border border-divider bg-content1 shadow-none">
+        <CardHeader className="flex justify-between items-center border-b border-divider">
           <div className="flex items-center gap-4">
             <Button
-              variant="flat"
+              variant="light"
+              radius="lg"
+              className="text-default-500"
               startContent={<ArrowLeft size={16} />}
               onClick={handleCancel}
             >
               Back
             </Button>
-            <h1 className="text-2xl font-bold">
-              {id ? 'Edit Post' : 'Create New Post'}
+            <h1 className="text-xl font-semibold tracking-tight">
+              {id ? 'Edit post' : 'New post'}
             </h1>
           </div>
         </CardHeader>
 
-        <CardBody>
+        <CardBody className="pt-6">
           {error && (
-            <div className="mb-4 p-4 text-red-500 bg-red-50 rounded-lg">
+            <div className="mb-4 p-4 text-sm text-danger rounded-xl border border-danger-200/30 bg-danger-50/10">
               {error}
             </div>
           )}
