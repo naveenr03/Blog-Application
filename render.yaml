@@ -39,11 +39,9 @@ services:
       - key: APP_CORS_ALLOWED_ORIGINS
         sync: false
 
-  # Static sites use Render's global CDN — do not set `region` (Blueprint validation error).
   - type: web
     name: blog-frontend
     runtime: static
-    plan: free
     rootDir: blog-frontend
     buildCommand: npm ci && npm run build
     staticPublishPath: ./blog-frontend/dist
