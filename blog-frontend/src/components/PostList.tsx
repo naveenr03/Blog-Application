@@ -13,10 +13,11 @@ interface PostListProps {
   sortBy: string;
   onPageChange: (page: number) => void;
   onSortChange: (sortBy: string) => void;
+  emptyMessage?: string;
 }
 
 const PostList: React.FC<PostListProps> = (props) => {
-  const { posts, loading, error } = props;
+  const { posts, loading, error, emptyMessage = 'No posts to show.' } = props;
   const navigate = useNavigate();
 
   const formatDate = (dateString: string) => {
@@ -52,7 +53,7 @@ const PostList: React.FC<PostListProps> = (props) => {
 
   if (error) {
     return (
-      <div className="p-4 text-red-500 bg-red-50 rounded-lg">
+      <div className="p-4 rounded-xl border border-danger-200/30 bg-danger-50/10 text-danger text-sm">
         {error}
       </div>
     );
@@ -82,56 +83,67 @@ const PostList: React.FC<PostListProps> = (props) => {
       {loading ? (
         <div className="space-y-4">
           {[...Array(3)].map((_, index) => (
-            <Card key={index} className="w-full animate-pulse">
+            <Card
+              key={index}
+              className="w-full animate-pulse bg-content1 border border-divider shadow-none"
+            >
               <CardBody>
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-4 bg-content3 rounded-lg w-3/4 mb-4" />
+                <div className="h-4 bg-content3 rounded-lg w-1/2" />
               </CardBody>
             </Card>
           ))}
         </div>
       ) : (
         <>
-          <div className="space-y-4">
+          <div className="space-y-3">
+            {posts?.length === 0 ? (
+              <p className="text-sm text-default-500 py-12 text-center border border-dashed border-divider rounded-2xl">
+                {emptyMessage}
+              </p>
+            ) : null}
             {posts?.map((post) => (
-              <Card key={post.id} className="w-full p-2" isPressable={true} onPress={() => navToPostPage(post)}>
-                <CardHeader className="flex gap-3">                 
-                    <div className='flex flex-col'>
-                    <h2 className="text-xl font-bold text-left">
+              <Card
+                key={post.id}
+                className="w-full bg-content1 border border-divider shadow-none transition-colors hover:border-default-400/50"
+                isPressable
+                onPress={() => navToPostPage(post)}
+              >
+                <CardHeader className="flex gap-3 pb-1">
+                  <div className="flex flex-col gap-1">
+                    <h2 className="text-lg font-semibold text-left text-foreground tracking-tight">
                       {post.title}
                     </h2>
-                    <p className="text-small text-default-500">
-                      by {post.author?.name}
-                    </p>                
-                    </div>
+                    <p className="text-xs text-default-500">by {post.author?.name}</p>
+                  </div>
                 </CardHeader>
-                <CardBody>
-                  <p className="line-clamp-3">
+                <CardBody className="pt-0">
+                  <p className="text-sm text-default-400 line-clamp-3 leading-relaxed">
                     {createExcerpt(post.content)}
                   </p>
                 </CardBody>
-                <CardFooter className="flex flex-wrap gap-3">
-                  <div className="flex items-center gap-1 text-small text-default-500">
-                    <Calendar size={16} />
+                <CardFooter className="flex flex-wrap gap-3 pt-0">
+                  <div className="flex items-center gap-1 text-xs text-default-500">
+                    <Calendar size={14} />
                     {formatDate(post.createdAt)}
                   </div>
-                  <div className="flex items-center gap-1 text-small text-default-500">
-                    <Clock size={16} />
+                  <div className="flex items-center gap-1 text-xs text-default-500">
+                    <Clock size={14} />
                     {post.readingTime} min read
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Chip
-                      className="bg-primary-100 text-primary"
-                    >
+                    <Chip size="sm" variant="flat" className="bg-primary/10 text-primary border border-primary/20">
                       {post.category.name}
                     </Chip>
-                    {post.tags.map((tag) => (
+                    {post.tags.map((t) => (
                       <Chip
-                        key={tag.id}
-                        className="bg-default-100"
-                        startContent={<Tag size={14} />}
+                        key={t.id}
+                        size="sm"
+                        variant="bordered"
+                        className="border-divider text-default-400"
+                        startContent={<Tag size={12} />}
                       >
-                        {tag.name}
+                        {t.name}
                       </Chip>
                     ))}
                   </div>

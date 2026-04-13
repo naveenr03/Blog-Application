@@ -7,7 +7,9 @@ import "./index.css";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <NextUIProvider>
-      <App />
+      <div className="min-h-screen bg-background text-foreground antialiased">
+        <App />
+      </div>
     </NextUIProvider>
   </StrictMode>
 );

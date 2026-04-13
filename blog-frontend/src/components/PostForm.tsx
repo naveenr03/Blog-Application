@@ -85,7 +85,8 @@ const PostForm: React.FC<PostFormProps> = ({
     content: initialPost?.content || '',
     editorProps: {
       attributes: {
-        class: 'prose max-w-none focus:outline-none min-h-[400px] px-4 py-2 border rounded-lg',
+        class:
+          'max-w-none focus:outline-none min-h-[400px] px-4 py-3 rounded-xl border border-divider bg-content2 text-foreground text-sm leading-relaxed',
       },
     },
   });
@@ -153,7 +154,7 @@ const PostForm: React.FC<PostFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <Card>
+      <Card className="border border-divider bg-content2/50 shadow-none">
         <CardBody className="space-y-4">
           <div className="space-y-2">
             <Input
@@ -163,11 +164,13 @@ const PostForm: React.FC<PostFormProps> = ({
               isInvalid={!!errors.title}
               errorMessage={errors.title}
               isRequired
+              variant="bordered"
+              classNames={{ inputWrapper: 'bg-content2 border-divider' }}
             />
           </div>
 
           <div className="space-y-2">
-            <div className="bg-default-100 p-2 rounded-lg mb-2 flex gap-2 flex-wrap items-center">
+            <div className="bg-content2 border border-divider p-2 rounded-xl mb-2 flex gap-2 flex-wrap items-center">
               <Dropdown>
                 <DropdownTrigger>
                   <Button
@@ -271,6 +274,8 @@ const PostForm: React.FC<PostFormProps> = ({
               isInvalid={!!errors.category}
               errorMessage={errors.category}
               isRequired
+              variant="bordered"
+              classNames={{ trigger: 'bg-content2 border-divider' }}
             >
               {categories.map((cat) => (
                 <SelectItem key={cat.id} value={cat.id}>
@@ -283,7 +288,10 @@ const PostForm: React.FC<PostFormProps> = ({
           <div className="space-y-2">
             <Select
               label="Add Tags"
-              selectedKeys={selectedTags.map(tag => tag.id)}>
+              selectedKeys={selectedTags.map(tag => tag.id)}
+              variant="bordered"
+              classNames={{ trigger: 'bg-content2 border-divider' }}
+            >
               <SelectSection>
                 {suggestedTags.map((tag) => (
                   <SelectItem
@@ -315,6 +323,8 @@ const PostForm: React.FC<PostFormProps> = ({
               label="Status"
               selectedKeys={[status]}
               onChange={(e) => setStatus(e.target.value as PostStatus)}
+              variant="bordered"
+              classNames={{ trigger: 'bg-content2 border-divider' }}
             >
               <SelectItem key={PostStatus.DRAFT} value={PostStatus.DRAFT}>
                 Draft
@@ -328,18 +338,15 @@ const PostForm: React.FC<PostFormProps> = ({
           <div className="flex justify-end gap-2 pt-4">
             <Button
               color="danger"
-              variant="flat"
+              variant="light"
+              radius="lg"
               onClick={onCancel}
               disabled={isSubmitting}
             >
               Cancel
             </Button>
-            <Button
-              color="primary"
-              type="submit"
-              isLoading={isSubmitting}
-            >
-              {initialPost ? 'Update' : 'Create'} Post
+            <Button color="primary" type="submit" radius="lg" isLoading={isSubmitting}>
+              {initialPost ? 'Update' : 'Create'}
             </Button>
           </div>
         </CardBody>

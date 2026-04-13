@@ -22,6 +22,8 @@ interface AuthProviderProps {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+const USER_STORAGE_KEY = 'user';
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -29,6 +31,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const applyAuthResponse = useCallback((response: AuthResponse) => {
     localStorage.setItem('token', response.token);
+    const nextUser: AuthUser | null =
+      response.userId != null
+        ? {
+            id: response.userId,
+            name: response.name ?? '',
+            email: response.email ?? '',
+          }
+        : null;
+    if (nextUser) {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(nextUser));
+    } else {
+      localStorage.removeItem(USER_STORAGE_KEY);
+    }
+    setUser(nextUser);
     setToken(response.token);
     setIsAuthenticated(true);
   }, []);
@@ -41,8 +57,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
           setIsAuthenticated(true);
           setToken(storedToken);
+          const storedUser = localStorage.getItem(USER_STORAGE_KEY);
+          if (storedUser) {
+            setUser(JSON.parse(storedUser) as AuthUser);
+          }
         } catch {
           localStorage.removeItem('token');
+          localStorage.removeItem(USER_STORAGE_KEY);
           setIsAuthenticated(false);
           setUser(null);
           setToken(null);
@@ -71,6 +92,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = useCallback(() => {
     localStorage.removeItem('token');
+    localStorage.removeItem(USER_STORAGE_KEY);
     setIsAuthenticated(false);
     setUser(null);
     setToken(null);

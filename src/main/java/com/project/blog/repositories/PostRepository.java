@@ -7,9 +7,12 @@ import com.project.blog.domain.entities.Post;
 import com.project.blog.domain.entities.Tag;
 import com.project.blog.domain.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -24,5 +27,26 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     List<Post> findAllByStatus(PostStatus status);
 
     List<Post> findAllByAuthorAndStatus(User Author, PostStatus status);
+
+    Optional<Post> findByIdAndAuthor_Id(UUID id, UUID authorId);
+
+    @Query("""
+            SELECT DISTINCT p FROM Post p
+            LEFT JOIN p.tags st
+            WHERE p.status = :status
+            AND (
+                LOWER(p.Title) LIKE LOWER(CONCAT('%', :search, '%'))
+                OR LOWER(p.content) LIKE LOWER(CONCAT('%', :search, '%'))
+                OR LOWER(p.category.name) LIKE LOWER(CONCAT('%', :search, '%'))
+                OR LOWER(st.name) LIKE LOWER(CONCAT('%', :search, '%'))
+            )
+            AND (:category IS NULL OR p.category = :category)
+            AND (:tag IS NULL OR :tag MEMBER OF p.tags)
+            """)
+    List<Post> searchPublished(
+            @Param("status") PostStatus status,
+            @Param("search") String search,
+            @Param("category") Category category,
+            @Param("tag") Tag tag);
 
 }

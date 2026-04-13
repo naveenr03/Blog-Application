@@ -35,7 +35,7 @@ function AppContent() {
         } : undefined}
         onLogout={logout}
       />
-      <main className="container mx-auto py-6">
+      <main className="min-h-[calc(100vh-4rem)] container mx-auto max-w-6xl px-4 py-10">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -48,7 +48,7 @@ function AppContent() {
               </ProtectedRoute>
             } 
           />
-          <Route path="/posts/:id" element={<PostPage isAuthenticated={isAuthenticated}/>} />
+          <Route path="/posts/:id" element={<PostPage />} />
           <Route 
             path="/posts/:id/edit" 
             element={

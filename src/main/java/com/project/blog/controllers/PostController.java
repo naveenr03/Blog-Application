@@ -9,12 +9,14 @@ import com.project.blog.domain.dtos.UpdatePostRequestDto;
 import com.project.blog.domain.entities.Post;
 import com.project.blog.domain.entities.User;
 import com.project.blog.mappers.PostMapper;
+import com.project.blog.security.BlogUserDetails;
 import com.project.blog.services.PostService;
 import com.project.blog.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,17 +34,18 @@ public class PostController {
     @GetMapping
     public ResponseEntity<List<PostDto>> getAllPosts(
             @RequestParam(required = false) UUID categoryID,
-            @RequestParam(required = false) UUID tagID
+            @RequestParam(required = false) UUID tagID,
+            @RequestParam(required = false) String search
     ) {
-        List<Post> posts = postService.getAllPosts(categoryID, tagID);
+        List<Post> posts = postService.getAllPosts(categoryID, tagID, search);
         List<PostDto> postDtos = posts.stream().map(postMapper::toDto).toList();
         return ResponseEntity.ok(postDtos);
 
     }
 
     @GetMapping(path = "/drafts")
-    public ResponseEntity<List<PostDto>> getDrafts(@RequestAttribute UUID userId) {
-        User loggedInUser = userService.getUserById(userId);
+    public ResponseEntity<List<PostDto>> getDrafts(@AuthenticationPrincipal BlogUserDetails principal) {
+        User loggedInUser = userService.getUserById(principal.getId());
         List<Post> draftPosts = postService.getDraftPost(loggedInUser);
         List<PostDto> postDtos = draftPosts.stream().map(postMapper::toDto).toList();
         return ResponseEntity.ok(postDtos);
@@ -59,10 +62,10 @@ public class PostController {
     @PostMapping
     public ResponseEntity<PostDto> createPost(
             @Valid @RequestBody CreatePostRequestDto createPostRequestDto,
-            @RequestAttribute UUID userId
+            @AuthenticationPrincipal BlogUserDetails principal
     ) {
 
-         User loggedInUser = userService.getUserById(userId);
+        User loggedInUser = userService.getUserById(principal.getId());
         CreatePostRequest createPostRequest = postMapper.toCreatePostRequest(createPostRequestDto);
         Post createdPost = postService.createPost(loggedInUser, createPostRequest);
         return new ResponseEntity<>(postMapper.toDto(createdPost), HttpStatus.CREATED);
@@ -73,19 +76,16 @@ public class PostController {
     @PutMapping(path = "/{id}")
     public ResponseEntity<PostDto> updatePost(
             @PathVariable UUID id,
-            @Valid @RequestBody UpdatePostRequestDto updatePostRequestDto,
-            @RequestAttribute UUID userId
+            @Valid @RequestBody UpdatePostRequestDto updatePostRequestDto
     ) {
         UpdatePostRequest updatePostRequest = postMapper.toUpdatePostRequest(updatePostRequestDto);
-        Post updatedPost = postService.updatePost(id, userId, updatePostRequest);
+        Post updatedPost = postService.updatePost(id, updatePostRequest);
         return ResponseEntity.ok(postMapper.toDto(updatedPost));
     }
 
     @DeleteMapping(path = "/{id}")
-    public ResponseEntity<Void> deletePost(
-            @PathVariable UUID id,
-            @RequestAttribute UUID userId) {
-        postService.deletePost(id, userId);
+    public ResponseEntity<Void> deletePost(@PathVariable UUID id) {
+        postService.deletePost(id);
         return ResponseEntity.noContent().build();
     }
 

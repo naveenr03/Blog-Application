@@ -12,13 +12,17 @@ import com.project.blog.services.CategoryService;
 import com.project.blog.services.PostService;
 import com.project.blog.services.TagService;
 import jakarta.persistence.EntityNotFoundException;
+import com.project.blog.security.BlogUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -32,9 +36,21 @@ public class PostServiceImpl implements PostService {
     private final TagService tagService;
     private static final int WORDS_PER_MINUTE = 200;
 
+    private static final int MAX_SEARCH_LENGTH = 200;
+
     @Override
     @Transactional(readOnly = true)
-    public List<Post> getAllPosts(UUID categoryID, UUID tagID) {
+    public List<Post> getAllPosts(UUID categoryID, UUID tagID, String search) {
+        String raw = search == null ? "" : search.trim();
+        if (!raw.isEmpty()) {
+            String term = sanitizeLikePattern(raw);
+            if (!term.isEmpty()) {
+                Category category =
+                        categoryID != null ? categoryService.getCategoryById(categoryID) : null;
+                Tag tag = tagID != null ? tagService.getTagById(tagID) : null;
+                return postRepository.searchPublished(PostStatus.PUBLISHED, term, category, tag);
+            }
+        }
 
         if(categoryID != null && tagID != null)  {
             Category category = categoryService.getCategoryById(categoryID);
@@ -55,6 +71,14 @@ public class PostServiceImpl implements PostService {
 
     return postRepository.findAllByStatus(PostStatus.PUBLISHED);
 
+    }
+
+    private static String sanitizeLikePattern(String raw) {
+        String stripped = raw.replace("%", "").replace("_", "").trim();
+        if (stripped.length() > MAX_SEARCH_LENGTH) {
+            stripped = stripped.substring(0, MAX_SEARCH_LENGTH);
+        }
+        return stripped;
     }
 
     @Override
@@ -102,10 +126,9 @@ public class PostServiceImpl implements PostService {
 
     @Transactional
     @Override
-    public Post updatePost(UUID id, UUID actorUserId, UpdatePostRequest updatePostRequest) {
-        Post existingPost = postRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(POST_NOT_FOUND + id));
-        assertAuthor(existingPost, actorUserId);
+    public Post updatePost(UUID id, UpdatePostRequest updatePostRequest) {
+        UUID actorUserId = requireCurrentUserId();
+        Post existingPost = requireOwnedPost(id, actorUserId);
 
         if (updatePostRequest.getTitle() != null) {
             existingPost.setTitle(updatePostRequest.getTitle());
@@ -143,17 +166,29 @@ public class PostServiceImpl implements PostService {
 
     @Transactional
     @Override
-    public void deletePost(UUID id, UUID actorUserId) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(POST_NOT_FOUND + id));
-        assertAuthor(post, actorUserId);
+    public void deletePost(UUID id) {
+        UUID actorUserId = requireCurrentUserId();
+        Post post = requireOwnedPost(id, actorUserId);
         postRepository.delete(post);
     }
 
-    private void assertAuthor(Post post, UUID actorUserId) {
-        if (actorUserId == null || !actorUserId.equals(post.getAuthor().getId())) {
-            throw new AccessDeniedException("You can only modify your own posts");
+    private static UUID requireCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof BlogUserDetails details)) {
+            throw new AccessDeniedException("Not authenticated");
         }
+        return details.getId();
+    }
+
+    private Post requireOwnedPost(UUID id, UUID actorUserId) {
+        Optional<Post> owned = postRepository.findByIdAndAuthor_Id(id, actorUserId);
+        if (owned.isPresent()) {
+            return owned.get();
+        }
+        if (!postRepository.existsById(id)) {
+            throw new EntityNotFoundException(POST_NOT_FOUND + id);
+        }
+        throw new AccessDeniedException("You can only modify your own posts");
     }
 
     private Integer calculateReadingTime(String Content) {
