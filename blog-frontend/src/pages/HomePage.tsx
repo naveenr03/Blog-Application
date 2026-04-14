@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   Chip,
   Button,
@@ -10,9 +10,11 @@ import {
 } from '@nextui-org/react';
 import { apiService, Post, Category, Tag } from '../services/apiService';
 import PostList from '../components/PostList';
-import { X, ChevronDown } from 'lucide-react';
+import { X, ChevronDown, Plus, BookDashed } from 'lucide-react';
+import { useAuth } from '../components/AuthContext';
 
 const HomePage: React.FC = () => {
+  const { isAuthenticated } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const searchQuery = (searchParams.get('q') ?? '').trim();
 
@@ -105,6 +107,32 @@ const HomePage: React.FC = () => {
           <p className="text-default-500 text-sm max-w-xl">
             Use the search bar for full-text search. Narrow results with the filters.
           </p>
+          {isAuthenticated ? (
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              <Button
+                as={Link}
+                to="/posts/new"
+                color="primary"
+                variant="flat"
+                size="sm"
+                radius="lg"
+                startContent={<Plus size={16} />}
+              >
+                New post
+              </Button>
+              <Button
+                as={Link}
+                to="/posts/drafts"
+                variant="bordered"
+                size="sm"
+                radius="lg"
+                className="border-divider bg-content1 text-foreground"
+                startContent={<BookDashed size={16} />}
+              >
+                Drafts
+              </Button>
+            </div>
+          ) : null}
           {searchQuery ? (
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <Chip

@@ -16,7 +16,7 @@ import {
   DropdownItem,
   Input,
 } from '@nextui-org/react';
-import { Plus, Edit3, LogOut, BookDashed, Search } from 'lucide-react';
+import { Plus, LogOut, BookDashed, Search } from 'lucide-react';
 
 interface NavBarProps {
   isAuthenticated: boolean;
@@ -83,7 +83,7 @@ const NavBar: React.FC<NavBarProps> = ({
             className="font-semibold tracking-tight text-foreground"
             onClick={() => setIsMenuOpen(false)}
           >
-            Journal
+            Personal Blog
           </Link>
         </NavbarBrand>
       </NavbarContent>
@@ -91,7 +91,7 @@ const NavBar: React.FC<NavBarProps> = ({
       <NavbarContent className="hidden sm:flex gap-6" justify="start">
         <NavbarBrand>
           <Link to="/" className="font-semibold tracking-tight text-foreground">
-            Journal
+            Personal Blog
           </Link>
         </NavbarBrand>
         {menuItems.map((item) => (
@@ -132,7 +132,7 @@ const NavBar: React.FC<NavBarProps> = ({
       <NavbarContent justify="end" className="gap-2">
         {isAuthenticated ? (
           <>
-            <NavbarItem className="hidden lg:flex">
+            <NavbarItem className="hidden sm:flex">
               <Button
                 as={Link}
                 to="/posts/drafts"
@@ -171,9 +171,6 @@ const NavBar: React.FC<NavBarProps> = ({
                   />
                 </DropdownTrigger>
                 <DropdownMenu aria-label="User menu">
-                  <DropdownItem key="drafts" startContent={<Edit3 size={16} />}>
-                    <Link to="/posts/drafts">My drafts</Link>
-                  </DropdownItem>
                   <DropdownItem
                     key="logout"
                     startContent={<LogOut size={16} />}

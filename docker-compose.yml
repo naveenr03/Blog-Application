@@ -5,7 +5,6 @@ services:
       - "5432:5432"
     restart: always
     environment:
-      # Override via root ".env" (see .env.example); Compose loads .env for interpolation automatically.
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: blog
       TZ: Asia/Kolkata
