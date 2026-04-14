@@ -42,8 +42,8 @@ services:
   - type: web
     name: blog-frontend
     runtime: static
-    buildCommand: npm ci && npm run build
-    staticPublishPath: blog-frontend/dist
+    buildCommand: cd blog-frontend && npm ci && npm run build
+    staticPublishPath: ./blog-frontend/dist
     buildFilter:
       paths:
         - blog-frontend/**
