@@ -42,9 +42,7 @@ services:
   - type: web
     name: blog-frontend
     runtime: static
-    rootDir: blog-frontend
     buildCommand: npm ci && npm run build
-    # Must be relative to rootDir — Vite writes to dist/ here (not ./blog-frontend/dist).
     staticPublishPath: blog-frontend/dist
     buildFilter:
       paths:
