@@ -1,8 +1,11 @@
 {
-  "name": "devtiro-builder-blog",
+  "name": "builder-blog",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
