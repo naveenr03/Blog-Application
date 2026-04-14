@@ -45,7 +45,7 @@ services:
     rootDir: blog-frontend
     buildCommand: npm ci && npm run build
     # Must be relative to rootDir — Vite writes to dist/ here (not ./blog-frontend/dist).
-    staticPublishPath: ./dist
+    staticPublishPath: dist
     buildFilter:
       paths:
         - blog-frontend/**
