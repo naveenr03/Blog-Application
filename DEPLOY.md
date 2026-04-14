@@ -71,7 +71,7 @@ Spring Boot maps environment variables to properties: `APP_CORS_ALLOWED_ORIGINS`
 ### 3. Frontend (Vercel or Render static)
 
 - **Vercel:** root `blog-frontend`, env `VITE_API_BASE_URL` (see above).
-- **Render static:** same as in `render.yaml` — `npm ci && npm run build`, publish `blog-frontend/dist`.
+- **Render static:** same as in `render.yaml` — `rootDir: blog-frontend`, `npm ci && npm run build`, **`staticPublishPath: ./dist`** (relative to `rootDir`, not `./blog-frontend/dist`).
 
 ### 4. Local vs production
 
