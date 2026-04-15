@@ -37,7 +37,14 @@ function AppContent() {
       />
       <main className="min-h-[calc(100vh-4rem)] container mx-auto max-w-6xl px-4 py-10">
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <HomePage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route 
@@ -48,7 +55,14 @@ function AppContent() {
               </ProtectedRoute>
             } 
           />
-          <Route path="/posts/:id" element={<PostPage />} />
+          <Route
+            path="/posts/:id"
+            element={
+              <ProtectedRoute>
+                <PostPage />
+              </ProtectedRoute>
+            }
+          />
           <Route 
             path="/posts/:id/edit" 
             element={
@@ -57,8 +71,22 @@ function AppContent() {
               </ProtectedRoute>
             } 
           />
-          <Route path="/categories" element={<CategoriesPage isAuthenticated={isAuthenticated}/>} />
-          <Route path="/tags" element={<TagsPage isAuthenticated={isAuthenticated}/>} />
+          <Route
+            path="/categories"
+            element={
+              <ProtectedRoute>
+                <CategoriesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tags"
+            element={
+              <ProtectedRoute>
+                <TagsPage />
+              </ProtectedRoute>
+            }
+          />
           <Route 
             path="/posts/drafts" 
             element={

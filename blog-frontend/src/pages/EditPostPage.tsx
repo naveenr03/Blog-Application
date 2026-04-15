@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Card,
   CardBody,
@@ -14,6 +14,8 @@ import { useAuth } from '../components/AuthContext';
 const EditPostPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const defaultEntryDate = searchParams.get('entryDate') ?? undefined;
   const { user } = useAuth();
   const [post, setPost] = useState<Post | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -56,6 +58,7 @@ const EditPostPage: React.FC = () => {
     categoryId: string;
     tagIds: string[];
     status: PostStatus;
+    entryDate: string;
   }) => {
     try {
       setIsSubmitting(true);
@@ -64,7 +67,7 @@ const EditPostPage: React.FC = () => {
       if (id) {
         await apiService.updatePost(id, {
           ...postData,
-          id
+          id,
         });
       } else {
         await apiService.createPost(postData);
@@ -72,7 +75,7 @@ const EditPostPage: React.FC = () => {
 
       navigate('/');
     } catch (err) {
-      setError('Failed to save the post. Please try again.');
+      setError('Failed to save the entry. Please try again.');
       setIsSubmitting(false);
     }
   };
@@ -147,7 +150,7 @@ const EditPostPage: React.FC = () => {
               Back
             </Button>
             <h1 className="text-xl font-semibold tracking-tight">
-              {id ? 'Edit post' : 'New post'}
+              {id ? 'Edit entry' : 'New entry'}
             </h1>
           </div>
         </CardHeader>
@@ -161,6 +164,7 @@ const EditPostPage: React.FC = () => {
 
           <PostForm
             initialPost={post}
+            defaultEntryDate={defaultEntryDate}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             categories={categories}

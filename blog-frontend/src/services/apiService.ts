@@ -46,6 +46,8 @@ export interface Post {
   createdAt: string;
   updatedAt: string;
   status?: PostStatus;
+  /** ISO calendar date (yyyy-MM-dd) for journal calendar */
+  entryDate?: string;
 }
 
 export interface CreatePostRequest {
@@ -54,10 +56,20 @@ export interface CreatePostRequest {
   categoryId: string;
   tagIds: string[];
   status: PostStatus;
+  entryDate?: string;
 }
 
 export interface UpdatePostRequest extends CreatePostRequest {
   id: string;
+}
+
+export interface JournalCalendarDay {
+  date: string;
+  entryIds: string[];
+}
+
+export interface JournalCalendarResponse {
+  days: JournalCalendarDay[];
 }
 
 
@@ -170,13 +182,22 @@ class ApiService {
     categoryId?: string;
     tagId?: string;
     search?: string;
+    entryDate?: string;
   }): Promise<Post[]> {
     const query: Record<string, string> = {};
     if (params.categoryId) query.categoryID = params.categoryId;
     if (params.tagId) query.tagID = params.tagId;
     if (params.search?.trim()) query.search = params.search.trim();
+    if (params.entryDate) query.entryDate = params.entryDate;
     const response: AxiosResponse<Post[]> = await this.api.get('/posts', {
       params: query,
+    });
+    return response.data;
+  }
+
+  public async getJournalCalendar(year: number, month: number): Promise<JournalCalendarResponse> {
+    const response: AxiosResponse<JournalCalendarResponse> = await this.api.get('/journal/calendar', {
+      params: { year, month },
     });
     return response.data;
   }

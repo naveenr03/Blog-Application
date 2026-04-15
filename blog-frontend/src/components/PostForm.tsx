@@ -29,16 +29,20 @@ import {
   ChevronDown,
   X
 } from 'lucide-react';
+import { format } from 'date-fns';
 import { Post, Category, Tag, PostStatus } from '../services/apiService';
 
 interface PostFormProps {
   initialPost?: Post | null;
+  /** When creating an entry, pre-fill the journal day (yyyy-MM-dd). */
+  defaultEntryDate?: string;
   onSubmit: (postData: {
     title: string;
     content: string;
     categoryId: string;
     tagIds: string[];
     status: PostStatus;
+    entryDate: string;
   }) => Promise<void>;
   onCancel: () => void;
   categories: Category[];
@@ -48,6 +52,7 @@ interface PostFormProps {
 
 const PostForm: React.FC<PostFormProps> = ({
   initialPost,
+  defaultEntryDate,
   onSubmit,
   onCancel,
   categories,
@@ -59,6 +64,12 @@ const PostForm: React.FC<PostFormProps> = ({
   const [selectedTags, setSelectedTags] = useState<Tag[]>(initialPost?.tags || []);
   const [status, setStatus] = useState<PostStatus>(
     initialPost?.status || PostStatus.DRAFT
+  );
+  const [entryDate, setEntryDate] = useState(
+    () =>
+      initialPost?.entryDate ||
+      defaultEntryDate ||
+      format(new Date(), 'yyyy-MM-dd')
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -98,6 +109,9 @@ const PostForm: React.FC<PostFormProps> = ({
       setCategoryId(initialPost.category?.id);
       setSelectedTags(initialPost.tags);
       setStatus(initialPost.status || PostStatus.DRAFT);
+      if (initialPost.entryDate) {
+        setEntryDate(initialPost.entryDate);
+      }
     }
   }, [initialPost, editor]);
 
@@ -112,6 +126,9 @@ const PostForm: React.FC<PostFormProps> = ({
     }
     if (!categoryId) {
       newErrors.category = 'Category is required';
+    }
+    if (!entryDate.trim()) {
+      newErrors.entryDate = 'Entry date is required';
     }
 
     setErrors(newErrors);
@@ -131,6 +148,7 @@ const PostForm: React.FC<PostFormProps> = ({
       categoryId: categoryId,
       tagIds: selectedTags.map(tag => tag.id),
       status,
+      entryDate: entryDate.trim(),
     });
   };
 
@@ -166,6 +184,20 @@ const PostForm: React.FC<PostFormProps> = ({
               isRequired
               variant="bordered"
               classNames={{ inputWrapper: 'bg-content2 border-divider' }}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Input
+              type="date"
+              label="Journal day"
+              value={entryDate}
+              onChange={(e) => setEntryDate(e.target.value)}
+              isInvalid={!!errors.entryDate}
+              errorMessage={errors.entryDate}
+              variant="bordered"
+              classNames={{ inputWrapper: 'bg-content2 border-divider' }}
+              description="Which calendar day this entry belongs to"
             />
           </div>
 
@@ -330,7 +362,7 @@ const PostForm: React.FC<PostFormProps> = ({
                 Draft
               </SelectItem>
               <SelectItem key={PostStatus.PUBLISHED} value={PostStatus.PUBLISHED}>
-                Published
+                Saved
               </SelectItem>
             </Select>
           </div>

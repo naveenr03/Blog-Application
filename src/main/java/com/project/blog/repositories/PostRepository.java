@@ -7,16 +7,18 @@ import com.project.blog.domain.entities.Post;
 import com.project.blog.domain.entities.Tag;
 import com.project.blog.domain.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface PostRepository extends JpaRepository<Post, UUID> {
+public interface PostRepository extends JpaRepository<Post, UUID>, JpaSpecificationExecutor<Post> {
 
     List<Post> findAllByStatusAndCategoryAndTagsContaining(PostStatus status, Category category, Tag tag);
 
@@ -27,6 +29,9 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     List<Post> findAllByStatus(PostStatus status);
 
     List<Post> findAllByAuthorAndStatus(User Author, PostStatus status);
+
+    List<Post> findAllByAuthorAndEntryDateBetweenOrderByEntryDateAscUpdatedAtDesc(
+            User author, LocalDate startInclusive, LocalDate endInclusive);
 
     Optional<Post> findByIdAndAuthor_Id(UUID id, UUID authorId);
 

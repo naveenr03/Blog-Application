@@ -11,7 +11,10 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity
-@Table(name = "tags")
+@Table(
+        name = "tags",
+        uniqueConstraints = @UniqueConstraint(name = "uk_tags_owner_name", columnNames = {"owner_id", "name"})
+)
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -23,8 +26,12 @@ public class Tag {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
 
     /**
      * Read-only count from {@code post_tags}; avoids relying on the inverse {@link #posts}
@@ -42,11 +49,12 @@ public class Tag {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Tag tag = (Tag) o;
-        return Objects.equals(id, tag.id) && Objects.equals(name, tag.name);
+        return Objects.equals(id, tag.id) && Objects.equals(name, tag.name)
+                && Objects.equals(owner, tag.owner);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name);
+        return Objects.hash(id, name, owner);
     }
 }

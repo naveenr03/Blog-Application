@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Card,
   CardHeader,
@@ -22,11 +23,7 @@ import {
 import { Plus, Edit2, Trash2 } from "lucide-react";
 import { apiService, Category } from "../services/apiService";
 
-interface CategoriesPageProps {
-  isAuthenticated: boolean;
-}
-
-const CategoriesPage: React.FC<CategoriesPageProps> = ({ isAuthenticated }) => {
+const CategoriesPage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -122,16 +119,14 @@ const CategoriesPage: React.FC<CategoriesPageProps> = ({ isAuthenticated }) => {
     <div className="max-w-4xl mx-auto px-4">
       <Card>
         <CardHeader className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Categories</h1>
-          {isAuthenticated && (
-            <Button
-              color="primary"
-              startContent={<Plus size={16} />}
-              onClick={openAddModal}
-            >
-              Add Category
-            </Button>
-          )}
+          <h1 className="text-2xl font-bold">Your categories</h1>
+          <Button
+            color="primary"
+            startContent={<Plus size={16} />}
+            onClick={openAddModal}
+          >
+            Add category
+          </Button>
         </CardHeader>
 
         <CardBody>
@@ -159,45 +154,48 @@ const CategoriesPage: React.FC<CategoriesPageProps> = ({ isAuthenticated }) => {
             >
               {categories.map((category) => (
                 <TableRow key={category.id}>
-                  <TableCell>{category.name}</TableCell>
+                  <TableCell>
+                    <Link
+                      to={`/?categoryId=${encodeURIComponent(category.id)}`}
+                      className="text-primary hover:underline font-medium"
+                    >
+                      {category.name}
+                    </Link>
+                  </TableCell>
                   <TableCell>{category.postCount || 0}</TableCell>
                   <TableCell>
-                    {isAuthenticated ? (
-                      <div className="flex gap-2">
+                    <div className="flex gap-2">
+                      <Button
+                        isIconOnly
+                        variant="flat"
+                        size="sm"
+                        onClick={() => openEditModal(category)}
+                      >
+                        <Edit2 size={16} />
+                      </Button>
+                      <Tooltip
+                        content={
+                          category.postCount
+                            ? "Cannot delete category with existing posts"
+                            : "Delete category"
+                        }
+                      >
                         <Button
                           isIconOnly
                           variant="flat"
+                          color="danger"
                           size="sm"
-                          onClick={() => openEditModal(category)}
-                        >
-                          <Edit2 size={16} />
-                        </Button>
-                        <Tooltip
-                          content={
-                            category.postCount
-                              ? "Cannot delete category with existing posts"
-                              : "Delete category"
+                          onClick={() => handleDelete(category)}
+                          isDisabled={
+                            category?.postCount
+                              ? category.postCount > 0
+                              : false
                           }
                         >
-                          <Button
-                            isIconOnly
-                            variant="flat"
-                            color="danger"
-                            size="sm"
-                            onClick={() => handleDelete(category)}
-                            isDisabled={
-                              category?.postCount
-                                ? category.postCount > 0
-                                : false
-                            }
-                          >
-                            <Trash2 size={16} />
-                          </Button>
-                        </Tooltip>
-                      </div>
-                    ) : (
-                      <span>-</span>
-                    )}
+                          <Trash2 size={16} />
+                        </Button>
+                      </Tooltip>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

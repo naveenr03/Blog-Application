@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Card,
   CardHeader,
@@ -23,11 +24,7 @@ import {
 import { Plus, Trash2, X } from "lucide-react";
 import { apiService, Tag } from "../services/apiService";
 
-interface TagsPageProps {
-  isAuthenticated: boolean;
-}
-
-const TagsPage: React.FC<TagsPageProps> = ({ isAuthenticated }) => {
+const TagsPage: React.FC = () => {
   const [tags, setTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -115,16 +112,14 @@ const TagsPage: React.FC<TagsPageProps> = ({ isAuthenticated }) => {
     <div className="max-w-4xl mx-auto px-4">
       <Card>
         <CardHeader className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Tags</h1>
-          {isAuthenticated && (
-            <Button
-              color="primary"
-              startContent={<Plus size={16} />}
-              onClick={onOpen}
-            >
-              Add Tags
-            </Button>
-          )}
+          <h1 className="text-2xl font-bold">Your tags</h1>
+          <Button
+            color="primary"
+            startContent={<Plus size={16} />}
+            onClick={onOpen}
+          >
+            Add tags
+          </Button>
         </CardHeader>
 
         <CardBody>
@@ -152,33 +147,36 @@ const TagsPage: React.FC<TagsPageProps> = ({ isAuthenticated }) => {
             >
               {tags.map((tag) => (
                 <TableRow key={tag.id}>
-                  <TableCell>{tag.name}</TableCell>
+                  <TableCell>
+                    <Link
+                      to={`/?tagId=${encodeURIComponent(tag.id)}`}
+                      className="text-primary hover:underline font-medium"
+                    >
+                      {tag.name}
+                    </Link>
+                  </TableCell>
                   <TableCell>{tag.postCount || 0}</TableCell>
                   <TableCell>
-                    {isAuthenticated ? (
-                      <Tooltip
-                        content={
-                          tag.postCount
-                            ? "Cannot delete tag with existing posts"
-                            : "Delete tag"
+                    <Tooltip
+                      content={
+                        tag.postCount
+                          ? "Cannot delete tag with existing posts"
+                          : "Delete tag"
+                      }
+                    >
+                      <Button
+                        isIconOnly
+                        variant="flat"
+                        color="danger"
+                        size="sm"
+                        onClick={() => handleDelete(tag)}
+                        isDisabled={
+                          tag?.postCount ? tag.postCount > 0 : false
                         }
                       >
-                        <Button
-                          isIconOnly
-                          variant="flat"
-                          color="danger"
-                          size="sm"
-                          onClick={() => handleDelete(tag)}
-                          isDisabled={
-                            tag?.postCount ? tag.postCount > 0 : false
-                          }
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </Tooltip>
-                    ) : (
-                      <span>-</span>
-                    )}
+                        <Trash2 size={16} />
+                      </Button>
+                    </Tooltip>
                   </TableCell>
                 </TableRow>
               ))}

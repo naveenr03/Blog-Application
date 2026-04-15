@@ -24,10 +24,21 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 const USER_STORAGE_KEY = 'user';
 
+function readStoredUser(): AuthUser | null {
+  try {
+    const raw = localStorage.getItem(USER_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as AuthUser;
+  } catch {
+    localStorage.removeItem(USER_STORAGE_KEY);
+    return null;
+  }
+}
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
+  const [user, setUser] = useState<AuthUser | null>(() => readStoredUser());
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => !!localStorage.getItem('token'));
 
   const applyAuthResponse = useCallback((response: AuthResponse) => {
     localStorage.setItem('token', response.token);
@@ -47,31 +58,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(nextUser);
     setToken(response.token);
     setIsAuthenticated(true);
-  }, []);
-
-  // Initialize auth state from token
-  useEffect(() => {
-    const initializeAuth = async () => {
-      const storedToken = localStorage.getItem('token');
-      if (storedToken) {
-        try {
-          setIsAuthenticated(true);
-          setToken(storedToken);
-          const storedUser = localStorage.getItem(USER_STORAGE_KEY);
-          if (storedUser) {
-            setUser(JSON.parse(storedUser) as AuthUser);
-          }
-        } catch {
-          localStorage.removeItem('token');
-          localStorage.removeItem(USER_STORAGE_KEY);
-          setIsAuthenticated(false);
-          setUser(null);
-          setToken(null);
-        }
-      }
-    };
-
-    initializeAuth();
   }, []);
 
   const login = useCallback(

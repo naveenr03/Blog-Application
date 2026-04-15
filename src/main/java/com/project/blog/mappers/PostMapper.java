@@ -36,9 +36,11 @@ public interface PostMapper {
 
     @Mapping(target = "categoryID", source = "categoryId")
     @Mapping(target = "postStatus", source = "status")
+    @Mapping(target = "entryDate", source = "entryDate")
     CreatePostRequest toCreatePostRequest(CreatePostRequestDto dto);
 
     @Mapping(target = "postStatus", source = "status")
+    @Mapping(target = "entryDate", source = "entryDate")
     UpdatePostRequest toUpdatePostRequest(UpdatePostRequestDto dto);
 
     @Named("categoryPostCount")

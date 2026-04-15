@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -23,4 +24,6 @@ public class UpdatePostRequest {
     private Set<UUID> tagIDs = new HashSet<>();
 
     private PostStatus postStatus;
+
+    private LocalDate entryDate;
 }

@@ -24,7 +24,7 @@ import { apiService, Post } from '../services/apiService';
 import { useAuth } from '../components/AuthContext';
 
 const PostPage: React.FC = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [post, setPost] = useState<Post | undefined>(undefined);
@@ -51,9 +51,6 @@ const PostPage: React.FC = () => {
 
     fetchPost();
   }, [id]);
-
-  const isAuthor =
-    Boolean(user?.id && post?.author?.id && user.id === post.author.id);
 
   const handleDelete = async () => {
     if (!post || !window.confirm('Are you sure you want to delete this post?')) {
@@ -133,7 +130,7 @@ const PostPage: React.FC = () => {
               startContent={<ArrowLeft size={16} />}
               className="mt-4"
             >
-              Back to Home
+              Back to journal
             </Button>
           </CardBody>
         </Card>
@@ -163,7 +160,7 @@ const PostPage: React.FC = () => {
               Back
             </Button>
             <div className="flex gap-2">
-              {isAuthenticated && isAuthor && (
+              {isAuthenticated && (
                 <>
                   <Button
                     as={Link}
@@ -211,7 +208,18 @@ const PostPage: React.FC = () => {
             </div>
             <div className="flex items-center gap-2 text-xs text-default-500">
               <Calendar size={16} />
-              <span>{formatDate(post.createdAt)}</span>
+              <span>
+                {post.entryDate
+                  ? new Date(`${post.entryDate}T12:00:00`).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })
+                  : formatDate(post.createdAt)}
+              </span>
+              {post.entryDate ? (
+                <span className="text-default-400">(journal day)</span>
+              ) : null}
             </div>
             <div className="flex items-center gap-2 text-xs text-default-500">
               <Clock size={16} />
@@ -224,7 +232,7 @@ const PostPage: React.FC = () => {
 
         <CardBody className="pt-6">
           <div
-            className="post-body max-w-none text-[15px] leading-relaxed text-white [&_p]:mb-4 [&_p]:text-white [&_strong]:text-white [&_em]:text-white"
+            className="post-body max-w-none font-serif text-[15px] leading-relaxed text-white [&_p]:mb-4 [&_p]:text-white [&_strong]:text-white [&_em]:text-white"
             dangerouslySetInnerHTML={createSanitizedHTML(post.content)}
           />
         </CardBody>

@@ -28,6 +28,17 @@ const PostList: React.FC<PostListProps> = (props) => {
     });
   };
 
+  const formatEntryOrCreated = (post: Post) => {
+    if (post.entryDate) {
+      return new Date(`${post.entryDate}T12:00:00`).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    }
+    return formatDate(post.createdAt);
+  };
+
   const createExcerpt = (content: string) => {
     // First sanitize the HTML
     const sanitizedContent = DOMPurify.sanitize(content, {
@@ -125,7 +136,7 @@ const PostList: React.FC<PostListProps> = (props) => {
                 <CardFooter className="flex flex-wrap gap-3 pt-0">
                   <div className="flex items-center gap-1 text-xs text-default-500">
                     <Calendar size={14} />
-                    {formatDate(post.createdAt)}
+                    {formatEntryOrCreated(post)}
                   </div>
                   <div className="flex items-center gap-1 text-xs text-default-500">
                     <Clock size={14} />

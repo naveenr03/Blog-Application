@@ -45,7 +45,7 @@ const NavBar: React.FC<NavBarProps> = ({
   }, [location.pathname, searchParams]);
 
   const menuItems = [
-    { name: 'Home', path: '/' },
+    { name: 'Journal', path: '/' },
     { name: 'Categories', path: '/categories' },
     { name: 'Tags', path: '/tags' },
   ];
@@ -53,7 +53,18 @@ const NavBar: React.FC<NavBarProps> = ({
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const t = searchText.trim();
-    navigate(t ? `/?q=${encodeURIComponent(t)}` : '/');
+    if (location.pathname === '/') {
+      const params = new URLSearchParams(location.search);
+      if (t) {
+        params.set('q', t);
+      } else {
+        params.delete('q');
+      }
+      const s = params.toString();
+      navigate(s ? `/?${s}` : '/');
+    } else {
+      navigate(t ? `/?q=${encodeURIComponent(t)}` : '/');
+    }
     setIsMenuOpen(false);
   };
 
@@ -83,7 +94,7 @@ const NavBar: React.FC<NavBarProps> = ({
             className="font-semibold tracking-tight text-foreground"
             onClick={() => setIsMenuOpen(false)}
           >
-            Personal Blog
+            Personal Journal
           </Link>
         </NavbarBrand>
       </NavbarContent>
@@ -91,7 +102,7 @@ const NavBar: React.FC<NavBarProps> = ({
       <NavbarContent className="hidden sm:flex gap-6" justify="start">
         <NavbarBrand>
           <Link to="/" className="font-semibold tracking-tight text-foreground">
-            Personal Blog
+            Personal Journal
           </Link>
         </NavbarBrand>
         {menuItems.map((item) => (
@@ -113,8 +124,8 @@ const NavBar: React.FC<NavBarProps> = ({
       <NavbarContent className="hidden md:flex flex-1 justify-center px-4" justify="center">
         <form onSubmit={submitSearch} className="w-full max-w-md">
           <Input
-            aria-label="Search posts"
-            placeholder="Search title, body, tags, categories…"
+            aria-label="Search entries"
+            placeholder="Search your entries…"
             value={searchText}
             onValueChange={setSearchText}
             size="sm"
@@ -203,7 +214,7 @@ const NavBar: React.FC<NavBarProps> = ({
       <NavbarMenu className="bg-content1 pt-4 gap-4">
         <form onSubmit={submitSearch} className="px-2">
           <Input
-            aria-label="Search posts"
+            aria-label="Search entries"
             placeholder="Search…"
             value={searchText}
             onValueChange={setSearchText}

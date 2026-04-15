@@ -14,11 +14,13 @@ import com.project.blog.services.PostService;
 import com.project.blog.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,9 +37,12 @@ public class PostController {
     public ResponseEntity<List<PostDto>> getAllPosts(
             @RequestParam(required = false) UUID categoryID,
             @RequestParam(required = false) UUID tagID,
-            @RequestParam(required = false) String search
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate entryDate,
+            @AuthenticationPrincipal BlogUserDetails principal
     ) {
-        List<Post> posts = postService.getAllPosts(categoryID, tagID, search);
+        User loggedInUser = userService.getUserById(principal.getId());
+        List<Post> posts = postService.getAllPosts(categoryID, tagID, search, loggedInUser, entryDate);
         List<PostDto> postDtos = posts.stream().map(postMapper::toDto).toList();
         return ResponseEntity.ok(postDtos);
 
@@ -54,8 +59,8 @@ public class PostController {
     @GetMapping(path = "/{id}")
     public ResponseEntity<PostDto> getPostById(
             @PathVariable UUID id,
-            @RequestAttribute(name = "userId", required = false) UUID viewerUserId) {
-        Post post = postService.getPostById(id, viewerUserId);
+            @AuthenticationPrincipal BlogUserDetails principal) {
+        Post post = postService.getPostById(id, principal.getId());
         return ResponseEntity.ok(postMapper.toDto(post));
     }
 

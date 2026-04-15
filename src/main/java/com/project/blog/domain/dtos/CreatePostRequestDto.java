@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -37,5 +38,8 @@ public class CreatePostRequestDto {
 
     @NotNull(message = "Status is required")
     private PostStatus status;
+
+    @JsonProperty("entryDate")
+    private LocalDate entryDate;
 
 }

@@ -1,0 +1,8 @@
+package com.project.blog.domain.dtos;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+public record JournalCalendarDayDto(LocalDate date, List<UUID> entryIds) {
+}
