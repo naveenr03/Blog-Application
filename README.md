@@ -122,6 +122,11 @@ All journal data endpoints expect an `Authorization: Bearer <token>` header. Bas
 
 The React client is implemented in **`blog-frontend/src/services/apiService.ts`**.
 
+## Testing and CI
+
+- Run backend tests: `mvn verify` (or `mvn test`) from the repository root. Tests use the H2 profile under `src/test/resources/application.properties`.
+- GitHub Actions (`.github/workflows/ci.yml`) runs `mvn -B verify` and, in `blog-frontend/`, `npm ci`, `npm run lint`, and `npm run build` on pushes and pull requests to `main` / `master`.
+
 ## Deployment
 
 - **Render:** [render.yaml](render.yaml) — **New → Blueprint**; see [DEPLOY.md](DEPLOY.md) for env vars (`JWT_SECRET`, datasource, `APP_CORS_ALLOWED_ORIGINS`, `VITE_API_BASE_URL`).

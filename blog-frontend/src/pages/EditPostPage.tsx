@@ -42,7 +42,7 @@ const EditPostPage: React.FC = () => {
         }
 
         setError(null);
-      } catch (err) {
+      } catch {
         setError('Failed to load necessary data. Please try again later.');
       } finally {
         setLoading(false);
@@ -74,7 +74,7 @@ const EditPostPage: React.FC = () => {
       }
 
       navigate('/');
-    } catch (err) {
+    } catch {
       setError('Failed to save the entry. Please try again.');
       setIsSubmitting(false);
     }

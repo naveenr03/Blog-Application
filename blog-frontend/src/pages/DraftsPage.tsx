@@ -28,7 +28,7 @@ const DraftsPage: React.FC = () => {
         });
         setDrafts(response);
         setError(null);
-      } catch (err) {
+      } catch {
         setError('Failed to load drafts. Please try again later.');
       } finally {
         setLoading(false);

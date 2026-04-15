@@ -42,7 +42,7 @@ const PostPage: React.FC = () => {
         setPost(fetchedPost);
         setError(null);
         setDeleteError(null);
-      } catch (err) {
+      } catch {
         setError('Failed to load the post. Please try again later.');
       } finally {
         setLoading(false);
@@ -75,7 +75,7 @@ const PostPage: React.FC = () => {
         text: post?.content.substring(0, 100) + '...',
         url: window.location.href,
       });
-    } catch (err) {
+    } catch {
       // Fallback to copying URL
       navigator.clipboard.writeText(window.location.href);
     }

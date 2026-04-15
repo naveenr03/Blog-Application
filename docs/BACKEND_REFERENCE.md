@@ -68,6 +68,9 @@ Resources live under `src/main/resources/`:
 ### 3.5 Tests
 
 - `src/test/resources/application.properties` uses H2 in-memory, **`spring.flyway.enabled=false`**, and `ddl-auto=create-drop` so tests do not run PostgreSQL-specific Flyway scripts.
+- **CI:** [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs `mvn -B verify` and the frontend `npm ci`, `npm run lint`, `npm run build`.
+- **Examples in this repo:** `@WebMvcTest` for `AuthController` (JSON contracts; security auto-config excluded for that slice), `@SpringBootTest` + `@AutoConfigureMockMvc` in `PostControllerMockMvcIntegrationTest` for `GET /api/v1/posts` (real `SecurityFilterChain`: 401 without auth, 200 with mocked services), `@DataJpaTest` for `UserRepository`.
+- Test-only dependency: **`spring-security-test`** (MockMvc security request post-processors).
 
 ---
 
