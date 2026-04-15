@@ -1,13 +1,30 @@
-# Blog Platform
+# Personal Journal
 
-A full-stack blog application: a **Spring Boot** REST API with JWT authentication, and a **React** (Vite + TypeScript) client. Authors can manage posts (drafts and published), categories, and tags; visitors can browse published content with optional filters.
+A full-stack **private journal** application: a **Spring Boot** REST API with JWT authentication and a **React** (Vite + TypeScript) SPA. Each signed-in user keeps their own entries, **categories**, and **tags**—nothing is shared across accounts. The UI is built around a **calendar**, **journal days** (`entryDate`), and filters (category, tag, search) with **shareable URLs**.
+
+## Features
+
+- **Authentication** — Register, log in, JWT stored in the browser; protected routes on the SPA.
+- **Entries (posts)** — Draft or published, rich text (TipTap), reading time, optional backdated **journal day**.
+- **Per-user labels** — Categories and tags belong to the logged-in user only; duplicate names are allowed for different users in the database.
+- **Journal home** — Month calendar with days that have entries highlighted; list filtered by selected day and/or category/tag/search.
+- **Browse by label** — From **Categories** or **Tags**, click a name to open the journal filtered to all entries for that label (URL-driven).
+- **URL state** — Query params such as `date`, `categoryId`, `tagId`, and `q` keep filters across refresh and sharing.
 
 ## Tech stack
 
 | Layer    | Technologies |
 |----------|----------------|
-| Backend  | Java 21, Spring Boot 4, Spring Data JPA, PostgreSQL, Spring Security, JWT, MapStruct, Lombok |
-| Frontend | React 18, TypeScript, Vite, NextUI, Tailwind CSS, TipTap, Axios |
+| Backend  | Java 21, Spring Boot 4, Spring Data JPA, PostgreSQL, Spring Security, JWT, MapStruct, Lombok, **Flyway** (migrations) |
+| Frontend | React 18, TypeScript, Vite, NextUI, Tailwind CSS, TipTap, Axios, React Router, react-day-picker |
+
+## Documentation
+
+| Doc | Contents |
+|-----|----------|
+| [docs/BACKEND_REFERENCE.md](docs/BACKEND_REFERENCE.md) | API architecture, security, entities, Flyway, deployment notes |
+| [docs/FRONTEND_REFERENCE.md](docs/FRONTEND_REFERENCE.md) | SPA structure, auth, routing, journal URL patterns, build |
+| [DEPLOY.md](DEPLOY.md) | Render blueprint, env vars, CORS, Supabase/Neon |
 
 ## Repository layout
 
@@ -16,129 +33,100 @@ docker-compose.yml       # PostgreSQL + Adminer (local dev database)
 .env.example             # Template for local secrets (copy to .env — never commit .env)
 pom.xml                  # Spring Boot API (Maven root)
 src/main/java/...
-src/main/resources/application.properties
-blog-frontend/           # React SPA (has its own .env.example)
+src/main/resources/
+  application.properties
+  application-prod.properties
+  db/migration/          # Flyway SQL (e.g. schema upgrades for existing DBs)
+docs/                    # Backend & frontend reference guides
+blog-frontend/           # React SPA
+render.yaml              # Render Blueprint (API + static site)
 ```
 
 ## Prerequisites
 
 - **JDK 21**
 - **Maven 3.9+**
-- **Node.js 20+** (LTS recommended) and npm
-- **Docker** with Docker Compose (recommended for the database), *or* your own PostgreSQL instance
+- **Node.js 20+** (LTS) and npm
+- **Docker** with Docker Compose (recommended), *or* your own PostgreSQL
 
 ## Docker Compose (database)
 
-The repo includes **`docker-compose.yml`**, which starts **PostgreSQL** with a ready-to-use database and **Adminer** for browsing the DB in a browser. You do **not** need to create the database manually.
-
-Optional: copy **`.env.example`** to **`.env`** in the repo root to set a custom **`POSTGRES_PASSWORD`** (defaults to **`postgres`** if you skip this). Docker Compose reads `.env` automatically for variable substitution.
-
-From the repository root:
+The repo includes **`docker-compose.yml`** for **PostgreSQL** and **Adminer**. Optional: copy **`.env.example`** to **`.env`** to set **`POSTGRES_PASSWORD`**.
 
 ```bash
 docker compose up -d
 ```
 
-(If your setup still uses Compose V1, use `docker-compose up -d` instead.)
-
-| Service  | Image             | Purpose |
-|----------|-------------------|---------|
-| `db`     | `postgres:latest` | Database `blog` on port **5432** (see `POSTGRES_*` variables in `docker-compose.yml`). |
-| `adminer`| `adminer:latest`  | Web UI at **http://localhost:8888** — see **Adminer** below. |
-
-### Adminer
-
-Open **http://localhost:8888**. On the login screen:
-
-1. **System** — choose **PostgreSQL** (not MySQL/MariaDB). Using the wrong engine produces errors such as **“Connection refused”** because Adminer speaks the wrong protocol.
-2. **Server** — `db` (the Docker Compose service name; Adminer runs on the same network and resolves it).
-3. **Username** — `postgres` (default for the `postgres` image).
-4. **Password** — the value of **`POSTGRES_PASSWORD`** (from your `.env` file, or the default **`postgres`**).
-5. **Database** — `blog` (created automatically via **`POSTGRES_DB`**).
-
-If login still fails, confirm both containers are up: `docker compose ps`, and that you ran `docker compose up -d` from the directory that contains **`docker-compose.yml`**.
-
-Stop the stack when finished:
+| Service   | Purpose |
+|-----------|---------|
+| `db`      | Database `blog` on port **5432** |
+| `adminer` | Web UI at **http://localhost:8888** — use **PostgreSQL**, server **`db`**, user/password from env, database **`blog`** |
 
 ```bash
 docker compose down
 ```
 
-Keep datasource settings in sync with Compose: defaults assume **`localhost:5432`**, database **`blog`**, user **`postgres`**, password **`postgres`**. If you change the password in **`.env`**, set **`SPRING_DATASOURCE_PASSWORD`** (or the full **`SPRING_DATASOURCE_*`** set) when running the API, or add a local-only **`application-local.properties`** (gitignored if you add it to `.gitignore`).
-
 ## Backend setup
 
-1. **Start PostgreSQL** — typically via **Docker Compose** (above). If you use another server, create a database named `blog` (or change the URL in `application.properties`).
+1. **Start PostgreSQL** (Docker Compose or your own). Create database `blog` if needed.
 
-2. **Configure the API** via `src/main/resources/application.properties` and **environment variables** (preferred for secrets):
+2. **Configuration** — `src/main/resources/application.properties` and **environment variables**:
 
-   - `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` — override JDBC settings without editing files.
-   - `JWT_SECRET` — long random secret (at least **32 bytes** for HS256). **Required in production**; never commit real secrets. See **`.env.example`** for local-only hints.
-   - `jwt.expiration-ms` — access-token lifetime in milliseconds (default eight hours).
-   - `spring.profiles.active` — defaults to **`dev`**, which runs a small **seed user** (`dev.seed-user.*` in `application.properties`). Set `DEV_SEED_USER_PASSWORD` to choose the password, or switch profile (e.g. `prod`) in production so the seed does not run.
+   - `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`
+   - `JWT_SECRET` — long random value (**required in production**)
+   - `jwt.expiration-ms` — token lifetime (default 8 hours)
+   - `spring.profiles.active` — defaults to **`dev`** (seeds a test user via `DevUserSeedRunner`). Use **`prod`** on hosted environments so the seed does not run.
+   - `APP_CORS_ALLOWED_ORIGINS` — comma-separated SPA origins in production
 
-   Hibernate is set to `ddl-auto=update`, so schema is created/updated from the JPA entities when the API starts.
+   **Schema:** **Flyway** runs migrations on startup (PostgreSQL requires **`flyway-database-postgresql`** on the classpath). Hibernate **`ddl-auto=update`** complements local dev; production uses **`application-prod.properties`** (Flyway baseline settings for existing databases). See [docs/BACKEND_REFERENCE.md](docs/BACKEND_REFERENCE.md).
 
-3. **Build and run** from the **repository root** (directory that contains `pom.xml`):
+3. **Run the API** from the repo root:
 
    ```bash
    mvn spring-boot:run
    ```
 
-   The API listens on **http://localhost:8080** by default, under **`/api/v1`**.
+   API base path: **`http://localhost:8080/api/v1`**.
 
-4. **IDE note:** MapStruct generates implementation classes (e.g. `PostMapperImpl`) during compilation. If the app fails with “bean … could not be found” for a mapper, run **`mvn compile`** once, or enable annotation processing / delegate the build to Maven in your IDE.
+4. **IDE:** Run **`mvn compile`** so MapStruct generates mapper implementations (`PostMapperImpl`, etc.).
 
 ## Frontend setup
 
-1. Install dependencies:
+```bash
+cd blog-frontend
+npm install
+npm run dev
+```
 
-   ```bash
-   cd blog-frontend
-   npm install
-   ```
+Vite (**http://localhost:5173**) proxies **`/api`** → **http://localhost:8080** (see `blog-frontend/vite.config.ts`).
 
-2. Start the dev server:
+**Production build:** `npm run build` → static assets in `blog-frontend/dist/`. Set **`VITE_API_BASE_URL`** to the full API root including **`/api/v1`** at build time (e.g. `https://your-api.onrender.com/api/v1`).
 
-   ```bash
-   npm run dev
-   ```
+## Using the application locally
 
-   Vite serves the UI (default **http://localhost:5173**) and **proxies** requests starting with `/api` to **http://localhost:8080**, so the browser can call the API without CORS configuration during development.
+1. `docker compose up -d` → `mvn spring-boot:run` → `npm run dev` in `blog-frontend/`.
+2. Open **http://localhost:5173**. **Sign up** at `/signup` or **Log in** at `/login`. With profile **`dev`**, a seed user is also created (see `DevUserSeedRunner` and `dev.seed-user.*`).
+3. Create **categories** and **tags** under the nav links; add **entries** from the journal home or **Drafts**.
+4. Use the **calendar** to pick a day; use filters or links from Categories/Tags to narrow the list.
 
-3. Production build (optional):
+## API overview (authenticated)
 
-   ```bash
-   npm run build
-   npm run preview   # local preview of the built assets
-   ```
+All journal data endpoints expect an `Authorization: Bearer <token>` header. Base path: **`/api/v1`**.
 
-   For production, serve the built `dist/` behind a reverse proxy and configure the same origin or CORS as appropriate for your API host.
+| Area | Examples |
+|------|----------|
+| Auth | `POST /auth/login`, `POST /auth/register` |
+| Posts | `GET /posts` (query: `categoryID`, `tagID`, `search`, `entryDate`), `GET /posts/drafts`, CRUD on `/posts` and `/posts/{id}` |
+| Categories / Tags | `GET`/`POST`/`PUT`/`DELETE` under `/categories`, `/tags` (scoped to the current user) |
+| Journal | `GET /journal/calendar?year=&month=` — days with entries for the calendar UI |
 
-## Using the application
+The React client is implemented in **`blog-frontend/src/services/apiService.ts`**.
 
-1. Start the stack: **`docker compose up -d`** (database), then **`mvn spring-boot:run`** at the repo root, then **`npm run dev`** in `blog-frontend/`.
-2. Open the app in the browser. **Sign up** at **`/signup`** (or use **Log in** at `/login`). With the **`dev`** profile, a seed user is still created on startup (see `DevUserSeedRunner` and `dev.seed-user.*` in `application.properties`).
-3. Create categories, tags, and posts as needed.
-4. Optional: open **Adminer** at **http://localhost:8888**, select **PostgreSQL**, then connect as described in **Adminer** above.
+## Deployment
 
-### Verifying registration and auth
-
-- **Register**: `POST /api/v1/auth/register` with JSON `{ "name", "email", "password" }` (password min 8 characters) → **201** and `{ "token", "expiresIn" }` (`expiresIn` is seconds, aligned with `jwt.expiration-ms`).
-- **Duplicate email** → **400** with a clear message.
-- **UI**: From the navbar, **Sign up** → submit the form → you should land on the home page already authenticated.
-
-## API overview
-
-REST endpoints are grouped under **`/api/v1`** (e.g. posts, categories, tags, auth). Auth endpoints include **`POST /api/v1/auth/login`** and **`POST /api/v1/auth/register`**. The React client uses **`/api/v1`** via the Vite proxy in development (`blog-frontend/src/services/apiService.ts`). For production builds, set **`VITE_API_BASE_URL`** (see `blog-frontend/.env.example` and **DEPLOY.md**).
+- **Render:** [render.yaml](render.yaml) — **New → Blueprint**; see [DEPLOY.md](DEPLOY.md) for env vars (`JWT_SECRET`, datasource, `APP_CORS_ALLOWED_ORIGINS`, `VITE_API_BASE_URL`).
+- **Vercel (frontend only):** root **`blog-frontend`**; [blog-frontend/vercel.json](blog-frontend/vercel.json) for SPA routing.
 
 ---
 
-## Deployment (free tier)
-
-- **Render (all-in-one):** add the repo in Render **New → Blueprint**; it reads **[render.yaml](render.yaml)** (API + static frontend). See **[DEPLOY.md](DEPLOY.md)** for env vars and first-time URL/CORS tips.
-- **Vercel (UI only):** set project root to **`blog-frontend`**; **[vercel.json](blog-frontend/vercel.json)** configures Vite + SPA rewrites. Set **`VITE_API_BASE_URL`** to your API’s `/api/v1` URL.
-
-Full steps: **[DEPLOY.md](DEPLOY.md)** (**CORS**, **Neon/Supabase**, secrets).
-
-For frontend-only scripts and tooling details, see `blog-frontend/README.md` if present.
+**License:** See [blog-frontend/LICENSE](blog-frontend/LICENSE).
