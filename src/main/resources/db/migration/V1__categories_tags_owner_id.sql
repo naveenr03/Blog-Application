@@ -17,9 +17,11 @@ BEGIN
     UPDATE categories c
     SET owner_id = sub.author_id
     FROM (
-      SELECT p.category_id AS cid, MIN(p.author_id) AS author_id
+      SELECT DISTINCT ON (p.category_id)
+        p.category_id AS cid,
+        p.author_id
       FROM posts p
-      GROUP BY p.category_id
+      ORDER BY p.category_id, p.author_id
     ) sub
     WHERE c.id = sub.cid;
 
@@ -71,10 +73,12 @@ BEGIN
     UPDATE tags t
     SET owner_id = sub.author_id
     FROM (
-      SELECT pt.tag_id AS tid, MIN(p.author_id) AS author_id
+      SELECT DISTINCT ON (pt.tag_id)
+        pt.tag_id AS tid,
+        p.author_id
       FROM post_tags pt
       INNER JOIN posts p ON p.id = pt.post_id
-      GROUP BY pt.tag_id
+      ORDER BY pt.tag_id, p.author_id
     ) sub
     WHERE t.id = sub.tid;
 
